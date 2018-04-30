@@ -3,5 +3,5 @@ WORKDIR /usr/scr/aika-server
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 8080
+EXPOSE 3075
 CMD ["npm", "start"]
