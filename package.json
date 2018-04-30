@@ -1,5 +1,5 @@
 {
-  "name": "boomr-server",
+  "name": "aika-server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,6 +8,6 @@
   "dependencies": {
     "eslint": "^4.19.1",
     "express": "^4.16.3",
-    "express-request-id" : "^1.4.0"
+    "express-request-id": "^1.4.0"
   }
 }

@@ -1,1 +1,1 @@
-Server repository for the boomr project
+Server repository for the aika project
