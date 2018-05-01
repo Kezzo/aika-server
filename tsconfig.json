@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "ES5",
+        "target": "es2015",
         "outDir": "compiled-src",
         "rootDir": "src",
         "removeComments": true,
