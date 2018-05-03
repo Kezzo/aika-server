@@ -1,4 +1,4 @@
-import { DatabaseAccess } from '../db-access';
+import { DatabaseAccess } from '../common/db-access';
 
 export class UserQuery {
     public static async GetUser(userId) {

@@ -3,8 +3,8 @@ import { Router, Request, Response } from 'express';
 import express = require('express');
 import expressRequestId = require('express-request-id');
 
-import { DatabaseAccess } from './db-access';
-import { RouteLoader } from './route-loader';
+import { DatabaseAccess } from './common/db-access';
+import { RouteLoader } from './common/route-loader';
 
 const app = express();
 app.use(expressRequestId());
