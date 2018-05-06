@@ -1,10 +1,12 @@
 import AWS = require('aws-sdk');
 import _ = require('underscore');
 
+import { AppLogger } from '../logging/app-logger';
+
 export class DatabaseAccess {
   private static dynamodb: AWS.DynamoDB.DocumentClient = null;
 
-  public static Init() {
+  public static Init(appLogger: AppLogger) {
     AWS.config.update({
       region: 'eu-west-1',
       accessKeyId: '',
@@ -13,16 +15,16 @@ export class DatabaseAccess {
 
     this.dynamodb = new AWS.DynamoDB.DocumentClient();
 
-    console.log('DatabaseAccess Init!');
+    appLogger.Info('DatabaseAccess Init!');
   }
 
-  public static async Create(params) {
-    console.log('DB Create: ' + JSON.stringify(params));
+  public static async Create(logger: AppLogger, params) {
+    logger.Info('DB Create: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.put(params, function(error, data) {
-        console.log('DB Created data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Created data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -32,12 +34,12 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Get(params) {
-    console.log('DB Get: ' + JSON.stringify(params));
+  public static async Get(logger: AppLogger, params) {
+    logger.Info('DB Get: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.get(params, function(error, data) {
-        console.log('DB Got data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Got data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -47,12 +49,12 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Update(params) {
-    console.log('DB Update: ' + JSON.stringify(params));
+  public static async Update(logger: AppLogger, params) {
+    logger.Info('DB Update: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.update(params, function(error, data) {
-        console.log('DB Updated data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Updated data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -62,13 +64,13 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Delete(params) {
-    console.log('DB Delete: ' + JSON.stringify(params));
+  public static async Delete(logger: AppLogger, params) {
+    logger.Info('DB Delete: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.delete(params, function(error, data) {
-        console.log('DB Deleted data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Deleted data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
