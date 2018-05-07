@@ -6,21 +6,18 @@ import fs = require('fs');
 import express = require('express');
 import moment = require('moment');
 import _ = require('underscore');
-import path = require('path');
 
 export class AccessLogger {
   public RequestLogger: express.RequestHandler;
   public ResponseLogger: express.RequestHandler;
 
-  constructor(logFolderName: string, logToConsole?: boolean) {
-    logFolderName = path.join(__dirname, logFolderName);
-
-    if (!fs.existsSync(logFolderName)) {
-      fs.mkdirSync(logFolderName);
+  constructor(logDirectory: string, logToConsole?: boolean) {
+    if (!fs.existsSync(logDirectory)) {
+      fs.mkdirSync(logDirectory);
     }
 
     const filestream = rfs('access.log', {
-      path: logFolderName,
+      path: logDirectory,
       size: '100MB',
       compress: 'gzip',
       maxFiles: 1

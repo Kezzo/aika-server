@@ -1,4 +1,3 @@
-import path = require('path');
 import fs = require('fs');
 import rfs = require('rotating-file-stream');
 import express = require('express');
@@ -18,16 +17,15 @@ export class AppLogger {
     }
   }
 
-  public static Init(logFolderName: string, logLevel, logToConsole?: boolean) {
+  public static Init(logDirectory: string, logLevel, logToConsole?: boolean) {
     this.logLevel = logLevel;
-    logFolderName = path.join(__dirname, logFolderName);
 
-    if (!fs.existsSync(logFolderName)) {
-      fs.mkdirSync(logFolderName);
+    if (!fs.existsSync(logDirectory)) {
+      fs.mkdirSync(logDirectory);
     }
 
     this.rfsToUse = rfs('app.log', {
-      path: logFolderName,
+      path: logDirectory,
       size: '100MB',
       compress: 'gzip',
       maxFiles: 1

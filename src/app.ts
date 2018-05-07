@@ -2,6 +2,7 @@ import { Router, Request, Response, RequestHandler } from 'express';
 
 import express = require('express');
 import expressRequestId = require('express-request-id');
+import path = require('path');
 
 import { DatabaseAccess } from './common/db-access';
 import { RouteLoader } from './common/route-loader';
@@ -14,11 +15,13 @@ const app = express();
 
 app.use(expressRequestId({ headerName: 'X-Amzn-Trace-Id', setHeader: true })); // will not overwrite
 
-const accessLogger = new AccessLogger('/logs', true);
+const logDirectory = path.join(path.resolve(__dirname, '..') + '/logs');
+
+const accessLogger = new AccessLogger(logDirectory, true);
 app.use(accessLogger.RequestLogger);
 app.use(accessLogger.ResponseLogger);
 
-AppLogger.Init('/logs', LogLevel.DEBUG, true);
+AppLogger.Init(logDirectory, LogLevel.DEBUG, true);
 const appLogger = new AppLogger();
 
 // used for healthcheck
