@@ -6,6 +6,6 @@ RUN npm install -g typescript
 COPY . .
 RUN tsc -p tsconfig.json
 RUN rm -rf src tsconfig.json dockerfile
-ENV NODE_ENV dev
+ENV NODE_ENV DEV
 EXPOSE 3075
 CMD ["npm", "start"]
