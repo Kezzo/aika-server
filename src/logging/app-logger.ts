@@ -7,7 +7,7 @@ import _ = require('underscore');
 import { LogLevel } from './log-level';
 
 export class AppLogger {
-  private static rfsToUse;
+  private static streamToUse;
   private static logLevel;
   private requestId: string;
 
@@ -17,36 +17,26 @@ export class AppLogger {
     }
   }
 
-  public static Init(logDirectory: string, logLevel, logToConsole?: boolean) {
+  public static Init(logDirectory: string, logLevel, streamToUse) {
     this.logLevel = logLevel;
-
-    if (!fs.existsSync(logDirectory)) {
-      fs.mkdirSync(logDirectory);
-    }
-
-    this.rfsToUse = rfs('app.log', {
-      path: logDirectory,
-      size: '100MB',
-      compress: 'gzip',
-      maxFiles: 1
-    });
+    this.streamToUse = streamToUse;
   }
 
   public Debug(logMessage: string) {
     if (AppLogger.logLevel.order <= LogLevel.DEBUG.order) {
-      AppLogger.rfsToUse.write(AppLogger.getFormattedLog(LogLevel.DEBUG, this.requestId, logMessage));
+      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.DEBUG, this.requestId, logMessage));
     }
   }
 
   public Info(logMessage: string) {
     if (AppLogger.logLevel.order <= LogLevel.INFO.order) {
-      AppLogger.rfsToUse.write(AppLogger.getFormattedLog(LogLevel.INFO, this.requestId, logMessage));
+      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.INFO, this.requestId, logMessage));
     }
   }
 
   public Warn(logMessage: string) {
     if (AppLogger.logLevel.order <= LogLevel.WARN.order) {
-      AppLogger.rfsToUse.write(AppLogger.getFormattedLog(LogLevel.WARN, this.requestId, logMessage));
+      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.WARN, this.requestId, logMessage));
     }
   }
 
@@ -56,7 +46,7 @@ export class AppLogger {
         logMessage = logMessage.message + '\n' + logMessage.stack;
       }
 
-      AppLogger.rfsToUse.write(AppLogger.getFormattedLog(LogLevel.ERROR, this.requestId, logMessage), callback);
+      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.ERROR, this.requestId, logMessage), callback);
     }
   }
 

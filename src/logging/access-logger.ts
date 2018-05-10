@@ -11,18 +11,7 @@ export class AccessLogger {
   public RequestLogger: express.RequestHandler;
   public ResponseLogger: express.RequestHandler;
 
-  constructor(logDirectory: string, logToConsole?: boolean) {
-    if (!fs.existsSync(logDirectory)) {
-      fs.mkdirSync(logDirectory);
-    }
-
-    const filestream = rfs('access.log', {
-      path: logDirectory,
-      size: '100MB',
-      compress: 'gzip',
-      maxFiles: 1
-    });
-
+  constructor(logDirectory: string, streamToUse) {
     this.RequestLogger = morgan(function(tokens: TokenIndexer,
       req: express.Request, res: express.Response) {
 
@@ -49,7 +38,7 @@ export class AccessLogger {
       return JSON.stringify(logObject);
     }, {
       immediate: true,
-      stream: filestream
+      stream: streamToUse
     });
 
     this.ResponseLogger = morgan(function(tokens: TokenIndexer,
@@ -70,7 +59,7 @@ export class AccessLogger {
 
       return JSON.stringify(logObject);
     }, {
-      stream: filestream
+      stream: streamToUse
     });
   }
 }
