@@ -53,7 +53,7 @@ export class AppLogger {
   private static getFormattedLog(logLevel, requestId: string, logMessage: string) {
     return JSON.stringify({
       message: logMessage,
-      datetime: moment.utc().format('Y/MM/DD HH:mm:ss'),
+      dateTime: moment.utc().format('Y/MM/DD HH:mm:ss'),
       level: logLevel.name,
       urid: requestId
     }) + '\n';
