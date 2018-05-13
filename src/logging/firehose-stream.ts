@@ -6,8 +6,8 @@ export class FirehoseStream {
 
   public static async Init() {
     this.firehose = new AWS.Firehose({
-      endpoint: 'firehose.eu-central-1.amazonaws.com',
-      region: 'eu-central-1',
+      endpoint: 'firehose.eu-west-1.amazonaws.com',
+      region: 'eu-west-1',
       sslEnabled: true,
       accessKeyId: '',
       secretAccessKey : ''

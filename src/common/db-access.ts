@@ -8,7 +8,7 @@ export class DatabaseAccess {
 
   public static Init(appLogger: AppLogger) {
     AWS.config.update({
-      region: 'eu-central-1',
+      region: 'eu-west-1',
       accessKeyId: '',
       secretAccessKey : ''
     });
