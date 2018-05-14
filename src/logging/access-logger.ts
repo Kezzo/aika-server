@@ -15,6 +15,11 @@ export class AccessLogger {
     this.RequestLogger = morgan(function(tokens: TokenIndexer,
       req: express.Request, res: express.Response) {
 
+      const body = req.body;
+      if (!_.isUndefined(body.password)) {
+        body.password = 'X';
+      }
+
       const logObject = {
         message: tokens.method(req, res) + ' request to ' + tokens.url(req, res),
         dateTime: moment.utc().format('Y/MM/DD HH:mm:ss'),
@@ -22,7 +27,7 @@ export class AccessLogger {
         endpoint: tokens.url(req, res),
         urid: res.get('X-Amzn-Trace-Id'),
         headers: req.headers,
-        requestBody: req.body,
+        requestBody: body,
         type: 'request'
       };
 

@@ -18,17 +18,18 @@ export class DatabaseAccess {
     appLogger.Info('DatabaseAccess Init!');
   }
 
-  public static async Create(logger: AppLogger, params) {
-    logger.Info('DB Create: ' + JSON.stringify(params));
+  public static async Put(logger: AppLogger, params) {
+    logger.Info('DB Put: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.put(params, function(error, data) {
-        logger.Info('DB Created data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
+          logger.Warn('Error putting data to DB:' + error);
           return reject(error);
         }
 
+        logger.Info('DB Put data:' + JSON.stringify(data));
         return resolve(data.Attributes);
       });
     });
@@ -45,6 +46,21 @@ export class DatabaseAccess {
         }
 
         return resolve(data.Item);
+      });
+    });
+  }
+
+  public static async Query(logger: AppLogger, params) {
+    logger.Info('DB Query: ' + JSON.stringify(params));
+    const dynamodb = this.dynamodb;
+    return new Promise(function(resolve, reject) {
+      dynamodb.query(params, function(error, data) {
+        logger.Info('DB Query data:' + JSON.stringify(data) + ' error: ' + error);
+        if (!_.isNull(error)) {
+          return reject(error);
+        }
+
+        return resolve(data.Items);
       });
     });
   }
