@@ -40,7 +40,7 @@ export class AppLogger {
     }
   }
 
-  public Error(logMessage, callback) {
+  public Error(logMessage, callback?) {
     if (AppLogger.logLevel.order <= LogLevel.ERROR.order) {
       if (!_.isUndefined(logMessage.message) && !_.isUndefined(logMessage.stack)) {
         logMessage = logMessage.message + '\n' + logMessage.stack;
