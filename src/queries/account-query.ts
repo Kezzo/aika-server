@@ -30,7 +30,10 @@ export class AccountQuery {
       }
 
       asyncResult = await to(DatabaseAccess.Query(logger, params));
-      asyncResult.result = asyncResult.result[0];
+
+      if (!_.isNull(asyncResult.result) && _.isArray(asyncResult.result)) {
+        asyncResult.result = asyncResult.result[0];
+      }
     }
 
     if (!_.isNull(asyncResult.error)) {
