@@ -17,7 +17,6 @@ export class AccountController {
       throw getAccountResult.error;
     }
 
-    // TODO: Create error id system to identify what error happened.
     if (!_.isNull(getAccountResult.result) && !_.isUndefined(getAccountResult.result)) {
       return {
         msg: {
@@ -46,6 +45,72 @@ export class AccountController {
     return {
       msg: response,
       statusCode: httpStatus.CREATED
+    };
+  }
+
+  public static async LoginAccount(logger: AppLogger, mail: string, accountId: string,
+    password: string, authToken: string) {
+
+    const mailOrPasswordMissing = (_.isUndefined(mail) || _.isNull(mail)) ||
+      (_.isUndefined(password) || _.isNull(password));
+
+    const accountIdOrAuthTokenMissing = (_.isUndefined(accountId) || _.isNull(accountId)) ||
+      (_.isUndefined(authToken) || _.isNull(authToken));
+
+    if (mailOrPasswordMissing && accountIdOrAuthTokenMissing) {
+      return {
+        msg: {
+          error: 'Login requires either mail&password or accountId&authToken!',
+          errorCode: AccountError.LOGIN_DETAILS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const getAccountResult = await AccountQuery.GetAccount(logger, false, accountId, mail);
+
+    if (_.isNull(getAccountResult.result) || _.isUndefined(getAccountResult.result)) {
+      return {
+        msg: {
+          error: 'Account with mail/accountId doesn\'t exists!',
+          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let authSuccessful: boolean = false;
+
+    if (!accountIdOrAuthTokenMissing) {
+      authSuccessful = _.isEqual(getAccountResult.result.AUTHTK, authToken);
+    } else if (!mailOrPasswordMissing) {
+      authSuccessful = await bcrypt.compare(password, getAccountResult.result.PWHASH);
+    }
+
+    if (!authSuccessful) {
+      return {
+        msg: {
+          error: 'Password or authToken is not correct!',
+          errorCode: AccountError.AUTH_PARAM_INCORRECT
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    // TODO: Generate login token here and put into cache.
+
+    const response: any = {
+      oneTimeToken: 'TODO'
+    };
+
+    if (!mailOrPasswordMissing) {
+      response.accountId = getAccountResult.result.ACCID;
+      response.authToken = getAccountResult.result.AUTHTK;
+    }
+
+    return {
+      msg: response,
+      statusCode: httpStatus.OK
     };
   }
 }

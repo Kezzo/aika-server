@@ -21,4 +21,20 @@ router.put('/create', function(req: express.Request, res: express.Response, next
     });
 });
 
+router.post('/login', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const mail = req.body.mail;
+  const accountId = req.body.accountId;
+  const password = req.body.password;
+  const authToken = req.body.authToken;
+
+  AccountController.LoginAccount(logger, mail, accountId, password, authToken)
+  .then((userData) => {
+    new Response(res, userData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
 module.exports = router;
