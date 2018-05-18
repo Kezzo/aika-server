@@ -15,7 +15,7 @@ export class AccessLogger {
     this.RequestLogger = morgan(function(tokens: TokenIndexer,
       req: express.Request, res: express.Response) {
 
-      const body = req.body;
+      const body = Object.assign({}, req.body, { password: 'X' });
       if (!_.isUndefined(body.password)) {
         body.password = 'X';
       }
