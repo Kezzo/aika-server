@@ -3,6 +3,7 @@ import bcrypt = require('bcryptjs');
 import httpStatus = require('http-status-codes');
 
 import to from '../utility/to';
+import isMail from '../utility/is-mail';
 import { AccountQuery } from '../queries/account-query';
 import { AppLogger } from '../logging/app-logger';
 import { AsyncResult } from '../utility/to';
@@ -10,6 +11,16 @@ import { AccountError } from '../error-codes/account-error';
 
 export class AccountController {
   public static async CreateAccount(logger: AppLogger, mail: string, password: string) {
+
+    if (!isMail(mail)) {
+      return {
+        msg: {
+          error: 'Mail has invalid format!',
+          errorCode: AccountError.INVALID_MAIL_FORMAT
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
 
     const getAccountResult = await AccountQuery.GetAccount(logger, true, null, mail);
 
