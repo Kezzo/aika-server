@@ -1,3 +1,6 @@
-export class AccountError {
-  public static ACCOUNT_ALREADY_EXISTS: string = 'ACCOUNT_ALREADY_EXISTS';
+export enum AccountError {
+  ACCOUNT_ALREADY_EXISTS = 0,
+  LOGIN_DETAILS_MISSING = 1,
+  ACCOUNT_DOESNT_EXISTS = 2,
+  AUTH_PARAM_INCORRECT = 3
 }
