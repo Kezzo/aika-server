@@ -23,10 +23,14 @@ export class Response {
         this.res.statusCode = httpStatus.OK;
       }
 
-      if (!_.isUndefined(this.result.msg)) {
-        responseMessage = JSON.stringify(this.result.msg);
+      if (!_.isUndefined(this.result.raw)) {
+        responseMessage = this.result.raw;
       } else {
-        responseMessage = JSON.stringify(this.result);
+        if (!_.isUndefined(this.result.msg)) {
+          responseMessage = JSON.stringify(this.result.msg);
+        } else {
+          responseMessage = JSON.stringify(this.result);
+        }
       }
     } else if (!_.isNull(this.error)) {
       if (!_.isUndefined(this.error.statusCode)) {

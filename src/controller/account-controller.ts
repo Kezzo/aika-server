@@ -8,6 +8,7 @@ import { AccountQuery } from '../queries/account-query';
 import { AppLogger } from '../logging/app-logger';
 import { AsyncResult } from '../utility/to';
 import { AccountError } from '../error-codes/account-error';
+import { MailService } from '../common/mail-service';
 
 export class AccountController {
   public static async CreateAccount(logger: AppLogger, mail: string, password: string) {
@@ -45,6 +46,13 @@ export class AccountController {
       throw asyncResult.error;
     }
 
+    const verificationMailResult = await to(MailService.SendVerificationMail(
+      mail, asyncResult.result.ACCID));
+
+    if (!_.isNull(verificationMailResult.error)) {
+      throw verificationMailResult.error;
+    }
+
     // TODO: Generate login token here and put into cache.
 
     const response = {
@@ -57,6 +65,35 @@ export class AccountController {
       msg: response,
       statusCode: httpStatus.CREATED
     };
+  }
+
+  public static async VerifyAccount(logger: AppLogger, accountId: string) {
+    if (_.isUndefined(accountId) || _.isNull(accountId) || accountId.length === 0) {
+      return {
+        msg: {
+          error: 'The account verification requires an accountId!',
+          errorCode: AccountError.VERF_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const updateSuccesful = await AccountQuery.UpdateAccount(logger, accountId, { VERF: true });
+
+    if (!updateSuccesful) {
+      return {
+        msg: {
+          error: '<p> Account to verify doesn\'t exist!</p>',
+          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    } else {
+      return {
+        raw: '<p> Account verification successful!</p>',
+        statusCode: httpStatus.OK
+      };
+    }
   }
 
   public static async LoginAccount(logger: AppLogger, mail: string, accountId: string,

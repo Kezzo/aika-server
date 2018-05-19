@@ -37,4 +37,17 @@ router.post('/login', function(req: express.Request, res: express.Response, next
   });
 });
 
+router.get('/verify', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.param('accountId');
+
+  AccountController.VerifyAccount(logger, accountId)
+  .then((userData) => {
+    new Response(res, userData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
 module.exports = router;

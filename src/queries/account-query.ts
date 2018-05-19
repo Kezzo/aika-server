@@ -60,6 +60,7 @@ export class AccountQuery {
       MAIL: '',
       PWHASH: '',
       AUTHTK: authToken,
+      VERF: false
     };
 
     if (!_.isUndefined(mail)) {
@@ -81,5 +82,47 @@ export class AccountQuery {
     }
 
     return itemToCreate;
+  }
+
+  public static async UpdateAccount(logger: AppLogger, accountId: string,
+    fieldsToUpdate: object) {
+    const updateParams: any = {
+      TableName: 'ACCOUNTS',
+      Key: { ACCID: accountId },
+      ExpressionAttributeNames: {},
+      ExpressionAttributeValues: {},
+      UpdateExpression: '',
+      ConditionExpression: 'attribute_exists(ACCID)'
+    };
+
+    let index: number = 0;
+    for (const property in fieldsToUpdate) {
+      if (fieldsToUpdate.hasOwnProperty(property)) {
+        updateParams.ExpressionAttributeNames['#' + index] = property;
+        updateParams.ExpressionAttributeValues[':' + index] = fieldsToUpdate[property];
+
+        if (index > 0) {
+          updateParams.UpdateExpression += ', ';
+        }
+
+        updateParams.UpdateExpression += 'SET #' + index + ' = :' + index;
+
+        index++;
+      }
+    }
+
+    const asyncResult = await to(DatabaseAccess.Update(logger, updateParams));
+
+    if (!_.isNull(asyncResult.error)) {
+      if (asyncResult.error.code === 'ConditionalCheckFailedException') {
+        return false;
+      } else {
+        throw asyncResult.error;
+      }
+    } else {
+      logger.Info('Account item successfully update with: ' + JSON.stringify(fieldsToUpdate));
+    }
+
+    return true;
   }
 }

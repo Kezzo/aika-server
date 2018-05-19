@@ -13,6 +13,7 @@ import { RouteLoader } from './common/route-loader';
 import { AccessLogger } from './logging/access-logger';
 import { AppLogger } from './logging/app-logger';
 import { LogLevel } from './logging/log-level';
+import { MailService } from './common/mail-service';
 
 const port = 3075;
 const app = express();
@@ -44,6 +45,7 @@ AppLogger.Init(logDirectory, LogLevel.DEBUG, logStreamToUse);
 const appLogger = new AppLogger();
 
 DatabaseAccess.Init(appLogger);
+MailService.Init();
 RouteLoader.LoadRoutes(appLogger, app);
 
 app.listen(port);

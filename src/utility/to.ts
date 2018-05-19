@@ -8,10 +8,10 @@ export default function to(promise: Promise<any>) {
 }
 
 export class AsyncResult {
-  public error: string;
+  public error: any;
   public result: any;
 
-  constructor(error: string, result: any) {
+  constructor(error: any, result: any) {
     this.error = error;
     this.result = result;
   }
