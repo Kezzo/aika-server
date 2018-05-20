@@ -12,7 +12,7 @@ export class MailService {
 
     await sendGridMailer.send({
       to: receiverMail,
-      from: 'jon@tinkrinc.co',
+      from: 'support@tinkrinc.co',
       subject: 'Verify your Aika account!',
       // tslint:disable-next-line:max-line-length
       html: '<p>Hi! Thanks for creating an Aika account.</p>' +
