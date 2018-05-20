@@ -42,8 +42,21 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
   const accountId = req.param('accountId');
 
   AccountController.VerifyAccount(logger, accountId)
-  .then((userData) => {
-    new Response(res, userData).Send();
+  .then((resultData) => {
+    new Response(res, resultData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
+router.post('/password/reset', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const mail = req.body.mail;
+
+  AccountController.InitiatePasswordReset(logger, mail)
+  .then((resultData) => {
+    new Response(res, resultData).Send();
   })
   .catch((error) => {
     new Response(res, null, error).Send();

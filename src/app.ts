@@ -11,6 +11,8 @@ import { ConsoleStream } from './logging/console-stream';
 
 import { SecretsProvider } from './common/secrets-provider';
 import { DatabaseAccess } from './common/db-access';
+import { CacheAccess } from './common/cache-access';
+
 import { RouteLoader } from './common/route-loader';
 import { AccessLogger } from './logging/access-logger';
 import { AppLogger } from './logging/app-logger';
@@ -52,6 +54,7 @@ const startup = async function() {
   await SecretsProvider.LoadSecrets(['send-grid-api-key']);
 
   DatabaseAccess.Init(appLogger);
+  CacheAccess.Init(appLogger);
   MailService.Init();
   RouteLoader.LoadRoutes(appLogger, app);
 

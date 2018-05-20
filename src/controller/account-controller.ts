@@ -23,13 +23,9 @@ export class AccountController {
       };
     }
 
-    const getAccountResult = await AccountQuery.GetAccount(logger, true, null, mail);
+    const accountData = await AccountQuery.GetAccount(logger, true, null, mail);
 
-    if (!_.isNull(getAccountResult.error)) {
-      throw getAccountResult.error;
-    }
-
-    if (!_.isNull(getAccountResult.result) && !_.isUndefined(getAccountResult.result)) {
+    if (!_.isNull(accountData) && !_.isUndefined(accountData)) {
       return {
         msg: {
           error: 'Account with mail already exists!',
@@ -115,9 +111,9 @@ export class AccountController {
       };
     }
 
-    const getAccountResult = await AccountQuery.GetAccount(logger, false, accountId, mail);
+    const accountData = await AccountQuery.GetAccount(logger, false, accountId, mail);
 
-    if (_.isNull(getAccountResult.result) || _.isUndefined(getAccountResult.result)) {
+    if (_.isNull(accountData) || _.isUndefined(accountData)) {
       return {
         msg: {
           error: 'Account with mail/accountId doesn\'t exists!',
@@ -130,9 +126,9 @@ export class AccountController {
     let authSuccessful: boolean = false;
 
     if (!accountIdOrAuthTokenMissing) {
-      authSuccessful = _.isEqual(getAccountResult.result.AUTHTK, authToken);
+      authSuccessful = _.isEqual(accountData.AUTHTK, authToken);
     } else if (!mailOrPasswordMissing) {
-      authSuccessful = await bcrypt.compare(password, getAccountResult.result.PWHASH);
+      authSuccessful = await bcrypt.compare(password, accountData.PWHASH);
     }
 
     if (!authSuccessful) {
@@ -152,12 +148,54 @@ export class AccountController {
     };
 
     if (!mailOrPasswordMissing) {
-      response.accountId = getAccountResult.result.ACCID;
-      response.authToken = getAccountResult.result.AUTHTK;
+      response.accountId = accountData.ACCID;
+      response.authToken = accountData.AUTHTK;
     }
 
     return {
       msg: response,
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async InitiatePasswordReset(logger: AppLogger, mail: string) {
+    if (_.isUndefined(mail) || _.isNull(mail)) {
+      return {
+        msg: {
+          error: 'Password reset requires mail of the account!',
+          errorCode: AccountError.RESET_PARAMS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const accountData = await AccountQuery.GetAccount(logger, false, null, mail);
+
+    if (_.isUndefined(accountData) || _.isNull(accountData)) {
+      return {
+        msg: {
+          error: 'Account doesn\'t exists!',
+          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const resetToken = await AccountQuery.StorePasswordResetToken(accountData.ACCID);
+
+    if (_.isNull(resetToken)) {
+      throw new Error('Reset token couldn\'nt be generated!');
+    }
+
+    const resetPasswordMailResult = await to(MailService.SendResetPasswordMail(
+      mail, accountData.ACCID, resetToken));
+
+    if (!_.isNull(resetPasswordMailResult.error)) {
+      throw resetPasswordMailResult.error;
+    }
+
+    return {
+      msg: '',
       statusCode: httpStatus.OK
     };
   }

@@ -2,6 +2,7 @@ import _ = require('underscore');
 import uuidv4 = require('uuid/v4');
 
 import { DatabaseAccess } from '../common/db-access';
+import { CacheAccess } from '../common/cache-access';
 import { AppLogger } from '../logging/app-logger';
 import to from '../utility/to';
 import { AsyncResult } from '../utility/to';
@@ -37,12 +38,12 @@ export class AccountQuery {
     }
 
     if (!_.isNull(asyncResult.error)) {
-      logger.Error('Error getting account with id: ' + accountId);
+      throw asyncResult.error;
     } else {
       logger.Info('Got data with id: ' + accountId + ': ' + JSON.stringify(asyncResult.result));
     }
 
-    return asyncResult;
+    return asyncResult.result;
   }
 
   public static async CreateAccountFromMail(logger: AppLogger, mail: string, passwordHash: string) {
@@ -124,5 +125,20 @@ export class AccountQuery {
     }
 
     return true;
+  }
+
+  public static async StorePasswordResetToken(accountId: string) {
+    if (_.isUndefined(accountId)) {
+      return null;
+    }
+
+    const resetToken = uuidv4();
+    const setResult = await to(CacheAccess.Set('RESET-' + accountId, resetToken, 900));
+
+    if (!_.isNull(setResult.error)) {
+      throw setResult.error;
+    }
+
+    return resetToken;
   }
 }
