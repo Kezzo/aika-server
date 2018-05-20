@@ -1,8 +1,9 @@
 import sendGridMailer = require('@sendgrid/mail');
+import { SecretsProvider } from './secrets-provider';
 
 export class MailService {
   public static Init() {
-    sendGridMailer.setApiKey('');
+    sendGridMailer.setApiKey(SecretsProvider.GetSecret('send-grid-api-key'));
   }
 
   public static async SendVerificationMail(receiverMail: string, accountId: string) {
