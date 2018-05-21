@@ -53,11 +53,11 @@ export class AccountQuery {
 
   // TODO: Add more options like GoogleID, FacebookID or TwitterID
   private static async CreateAccount(logger: AppLogger, mail?: string, passwordHash?: string) {
-    const accoundId = uuidv4();
+    const accountId = uuidv4();
     const authToken = uuidv4();
 
     const itemToCreate =  {
-      ACCID: accoundId,
+      ACCID: accountId,
       MAIL: '',
       PWHASH: '',
       AUTHTK: authToken,
@@ -92,7 +92,7 @@ export class AccountQuery {
       Key: { ACCID: accountId },
       ExpressionAttributeNames: {},
       ExpressionAttributeValues: {},
-      UpdateExpression: '',
+      UpdateExpression: 'SET ',
       ConditionExpression: 'attribute_exists(ACCID)'
     };
 
@@ -106,7 +106,7 @@ export class AccountQuery {
           updateParams.UpdateExpression += ', ';
         }
 
-        updateParams.UpdateExpression += 'SET #' + index + ' = :' + index;
+        updateParams.UpdateExpression += '#' + index + ' = :' + index;
 
         index++;
       }
@@ -140,5 +140,19 @@ export class AccountQuery {
     }
 
     return resetToken;
+  }
+
+  public static async GetPasswordResetToken(accountId: string) {
+    if (_.isUndefined(accountId)) {
+      return null;
+    }
+
+    const getResult = await to(CacheAccess.Get('RESET-' + accountId));
+
+    if (!_.isNull(getResult.error)) {
+      throw getResult.error;
+    }
+
+    return getResult.result;
   }
 }

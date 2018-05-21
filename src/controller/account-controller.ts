@@ -1,6 +1,7 @@
 import _ = require('underscore');
 import bcrypt = require('bcryptjs');
 import httpStatus = require('http-status-codes');
+import uuidv4 = require('uuid/v4');
 
 import to from '../utility/to';
 import isMail from '../utility/is-mail';
@@ -18,6 +19,16 @@ export class AccountController {
         msg: {
           error: 'Mail has invalid format!',
           errorCode: AccountError.INVALID_MAIL_FORMAT
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (_.isNull(password) || _.isUndefined(password) || password.length < 8) {
+      return {
+        msg: {
+          error: 'Password is missing or is too short!',
+          errorCode: AccountError.INVALID_PASSWORD
         },
         statusCode: httpStatus.BAD_REQUEST
       };
@@ -196,6 +207,58 @@ export class AccountController {
 
     return {
       msg: '',
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async CompletePasswordReset(logger: AppLogger, accountId: string,
+    resetToken: string, newPassword: string) {
+    if ((_.isUndefined(accountId) || _.isNull(accountId)) ||
+        (_.isUndefined(resetToken) || _.isNull(resetToken))) {
+      return {
+        msg: {
+          error: 'Password reset completion requires an accounId and the valid reset token!',
+          errorCode: AccountError.RESET_PARAMS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (_.isNull(newPassword) || _.isUndefined(newPassword) || newPassword.length < 8) {
+      return {
+        msg: {
+          error: 'Password is missing or is too short!',
+          errorCode: AccountError.INVALID_PASSWORD
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const storedResetToken = await AccountQuery.GetPasswordResetToken(accountId);
+
+    if (!_.isEqual(resetToken, storedResetToken)) {
+      return {
+        msg: {
+          error: 'Password reset token is invalid or has ran out!',
+          errorCode: AccountError.RESET_TOKEN_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const authToken = uuidv4();
+
+    const updateSuccesful = await AccountQuery.UpdateAccount(logger, accountId, {
+      PWHASH: passwordHash,
+      AUTHTK: authToken,
+      VERF: true
+    });
+
+    // TODO: Delete existing OTT, user is forced to do a new login anyway so OTT is generated again.
+
+    return {
+      msg: 'Password has been successfully reset!',
       statusCode: httpStatus.OK
     };
   }

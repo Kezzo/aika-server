@@ -63,4 +63,19 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
   });
 });
 
+router.post('/password/change', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.body.accountId;
+  const resetToken = req.body.resetToken;
+  const newPassword = req.body.newPassword;
+
+  AccountController.CompletePasswordReset(logger, accountId, resetToken, newPassword)
+  .then((resultData) => {
+    new Response(res, resultData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
 module.exports = router;
