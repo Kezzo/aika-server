@@ -246,6 +246,30 @@ export class AccountController {
       };
     }
 
+    const accountData = await AccountQuery.GetAccount(logger, false, accountId, null);
+
+    if (_.isUndefined(accountData) || _.isNull(accountData)) {
+      return {
+        msg: {
+          error: 'Account doesn\'t exists!',
+          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const isOldPassword = await bcrypt.compare(newPassword, accountData.PWHASH);
+
+    if (isOldPassword) {
+      return {
+        msg: {
+          error: 'The new password can\'t be the old one!',
+          errorCode: AccountError.NEW_PASSWORD_IS_OLD
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
     const passwordHash = await bcrypt.hash(newPassword, 10);
     const authToken = uuidv4();
 
