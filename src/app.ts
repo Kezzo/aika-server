@@ -13,6 +13,7 @@ import { SecretsProvider } from './common/secrets-provider';
 import { DatabaseAccess } from './common/db-access';
 import { CacheAccess } from './common/cache-access';
 
+import { OneTimeTokenProvider } from './common/ott-provider';
 import { RouteLoader } from './common/route-loader';
 import { AccessLogger } from './logging/access-logger';
 import { AppLogger } from './logging/app-logger';
@@ -47,6 +48,8 @@ const startup = async function() {
   const accessLogger = new AccessLogger(logDirectory, logStreamToUse);
   app.use(accessLogger.RequestLogger);
   app.use(accessLogger.ResponseLogger);
+
+  app.use(OneTimeTokenProvider.CheckOTT);
 
   AppLogger.Init(logDirectory, LogLevel.DEBUG, logStreamToUse);
   appLogger = new AppLogger();

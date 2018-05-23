@@ -5,6 +5,8 @@ import uuidv4 = require('uuid/v4');
 
 import to from '../utility/to';
 import isMail from '../utility/is-mail';
+
+import { OneTimeTokenProvider } from '../common/ott-provider';
 import { AccountQuery } from '../queries/account-query';
 import { AppLogger } from '../logging/app-logger';
 import { AsyncResult } from '../utility/to';
@@ -60,12 +62,12 @@ export class AccountController {
       throw verificationMailResult.error;
     }
 
-    // TODO: Generate login token here and put into cache.
+    const ott = await OneTimeTokenProvider.GenerateOTT(asyncResult.result.ACCID);
 
     const response = {
       accountId: asyncResult.result.ACCID,
       authToken: asyncResult.result.AUTHTK,
-      oneTimeToken: 'TODO'
+      oneTimeToken: ott
     };
 
     return {
@@ -152,10 +154,10 @@ export class AccountController {
       };
     }
 
-    // TODO: Generate login token here and put into cache.
+    const ott = await OneTimeTokenProvider.GenerateOTT(accountData.ACCID);
 
     const response: any = {
-      oneTimeToken: 'TODO'
+      oneTimeToken: ott
     };
 
     if (!mailOrPasswordMissing) {
