@@ -23,19 +23,7 @@ import { MailService } from './common/mail-service';
 let appLogger: AppLogger;
 
 const startup = async function() {
-  const port = 3075;
-  const app = express();
-
-  // TODO: Change when gzip and protobuf is used. Maybe only use for dev?
-  app.use(bodyParser.json());
-  app.use(expressRequestId({ headerName: 'X-Amzn-Trace-Id', setHeader: true })); // will not overwrite
-
   const logDirectory = path.join(path.resolve(__dirname, '..') + '/logs');
-
-  // used for healthcheck
-  app.get('/', function(req: Request, res: Response) {
-    res.send();
-  });
 
   let logStreamToUse;
   if (process.env.NODE_ENV === 'LOCAL') {
@@ -45,14 +33,36 @@ const startup = async function() {
     logStreamToUse = FirehoseStream;
   }
 
+  AppLogger.Init(logDirectory, LogLevel.DEBUG, logStreamToUse);
+  appLogger = new AppLogger();
+
+  process.on('uncaughtException', (err) => {
+    appLogger.Error('Uncaught exception: ' + err, () => {
+      process.exit(1);
+    });
+  });
+
+  process.on('unhandledRejection', (reason, p) => {
+    appLogger.Error('Unhandled rejection at:' + p + 'reason:' + reason);
+  });
+
+  const port = 3075;
+  const app = express();
+
+  // TODO: Change when gzip and protobuf is used. Maybe only use for dev?
+  app.use(bodyParser.json());
+  app.use(expressRequestId({ headerName: 'X-Amzn-Trace-Id', setHeader: true })); // will not overwrite
+
+  // used for healthcheck
+  app.get('/', function(req: Request, res: Response) {
+    res.send();
+  });
+
   const accessLogger = new AccessLogger(logDirectory, logStreamToUse);
   app.use(accessLogger.RequestLogger);
   app.use(accessLogger.ResponseLogger);
 
   app.use(OneTimeTokenProvider.CheckOTT);
-
-  AppLogger.Init(logDirectory, LogLevel.DEBUG, logStreamToUse);
-  appLogger = new AppLogger();
 
   await SecretsProvider.LoadSecrets(['send-grid-api-key']);
 
