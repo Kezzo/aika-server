@@ -16,7 +16,7 @@ export class Response {
   public Send() {
     let responseMessage: string = '';
 
-    if (!_.isNull(this.result)) {
+    if (!_.isNull(this.result) && !_.isUndefined(this.result)) {
       if (!_.isUndefined(this.result.statusCode)) {
         this.res.statusCode = this.result.statusCode;
       } else {
@@ -32,7 +32,7 @@ export class Response {
           responseMessage = JSON.stringify(this.result);
         }
       }
-    } else if (!_.isNull(this.error)) {
+    } else if (!_.isNull(this.error) && !_.isUndefined(this.error)) {
       if (!_.isUndefined(this.error.statusCode)) {
         this.res.statusCode = this.error.statusCode;
       } else {
@@ -51,6 +51,8 @@ export class Response {
           responseMessage = this.error.toString();
         }
       }
+    } else {
+      this.res.statusCode = httpStatus.INTERNAL_SERVER_ERROR;
     }
 
     this.res.send(responseMessage);
