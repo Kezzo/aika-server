@@ -20,6 +20,8 @@ import { AppLogger } from './logging/app-logger';
 import { LogLevel } from './logging/log-level';
 import { MailService } from './common/mail-service';
 
+import { TwitterService } from './platforms/twitter-service';
+
 let appLogger: AppLogger;
 
 const startup = async function() {
@@ -73,6 +75,8 @@ const startup = async function() {
 
   app.listen(port);
   appLogger.Info('aika server running on port: ' + port);
+
+  await TwitterService.Init();
 };
 
 startup()
