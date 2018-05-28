@@ -1,3 +1,4 @@
+import _ = require('underscore');
 import fs = require('fs');
 import path = require('path');
 
@@ -6,11 +7,26 @@ import { AppLogger } from '../logging/app-logger';
 
 export class RouteLoader {
   public static LoadRoutes(logger: AppLogger, expressApp: Express) {
-    fs.readdirSync(path.join(__dirname + '/..' + '/routes')).forEach((routeFile) => {
-      const routeName = routeFile.split('.')[0]; // to ignore file endings.
-      const router = require(path.join('..' + '/routes/' + routeName));
-      expressApp.use('/' + routeName, router);
-      logger.Info('Loaded ' + routeName + ' routes');
-    });
+    this.LoadRoutesFromDirectory('', logger, expressApp);
+  }
+
+  private static LoadRoutesFromDirectory(sourceDirectory: string, logger: AppLogger, expressApp: Express) {
+    const filesInDirectory = fs.readdirSync(path.join(__dirname + '/..' + '/routes' + sourceDirectory));
+
+    for (const file of filesInDirectory) {
+      // to ignore file endings.
+      const splitFileNames = file.split('.');
+      const fileName = splitFileNames[0];
+      const filePath = sourceDirectory + '/' + fileName;
+      // if no file ending than it's a directory.
+      if (splitFileNames.length === 1) {
+        this.LoadRoutesFromDirectory(filePath, logger, expressApp);
+      } else {
+        const fullFilePath = path.join('..' + '/routes/' + filePath);
+        const router = require(fullFilePath);
+        expressApp.use(filePath, router);
+        logger.Info('Loaded ' + fileName + ' routes');
+      }
+    }
   }
 }
