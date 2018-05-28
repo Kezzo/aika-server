@@ -66,17 +66,18 @@ const startup = async function() {
 
   app.use(OneTimeTokenProvider.CheckOTT);
 
-  await SecretsProvider.LoadSecrets(['send-grid-api-key']);
+  await SecretsProvider.LoadSecrets([
+    'send-grid-api-key',
+    'aika-twitter-api-keys']);
 
   DatabaseAccess.Init(appLogger);
   CacheAccess.Init(appLogger);
   MailService.Init();
+  TwitterService.Init();
   RouteLoader.LoadRoutes(appLogger, app);
 
   app.listen(port);
   appLogger.Info('aika server running on port: ' + port);
-
-  await TwitterService.Init();
 };
 
 startup()

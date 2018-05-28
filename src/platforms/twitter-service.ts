@@ -7,15 +7,18 @@ import _ = require('underscore');
 import to from '../utility/to';
 import { url } from 'inspector';
 import { AppLogger } from '../logging/app-logger';
+import { SecretsProvider } from '../common/secrets-provider';
 
 export class TwitterService {
   private static oauthClient;
 
-  public static async Init() {
+  public static Init() {
+    const apiKeys = SecretsProvider.GetSecret('aika-twitter-api-keys');
+
     this.oauthClient = new OAuth({
       consumer: {
-        key: '',
-        secret: ''
+        key: apiKeys['aika-twitter-consumer-key'],
+        secret: apiKeys['aika-twitter-secret-key']
       },
       realm: '',
       signature_method: 'HMAC-SHA1',

@@ -19,7 +19,11 @@ export class SecretsProvider {
 
       const secretJSON = JSON.parse(getSecretResponse.SecretString);
 
-      this.secretsMap.set(secretName, secretJSON[secretName]);
+      if (_.isUndefined(secretJSON[secretName]) || _.isNull(secretJSON[secretName])) {
+        this.secretsMap.set(secretName, secretJSON);
+      } else {
+        this.secretsMap.set(secretName, secretJSON[secretName]);
+      }
     }
   }
 
