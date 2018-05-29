@@ -1,7 +1,7 @@
 import _ = require('underscore');
 
 export default function isMail(stringToCheck: string) {
-  if (_.isUndefined(stringToCheck) || _.isNull(stringToCheck)) {
+  if (!stringToCheck) {
     return false;
   }
 

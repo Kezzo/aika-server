@@ -7,14 +7,28 @@ import { AccountController } from '../controller/account-controller';
 import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
-router.put('/create', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.put('/create/mail', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
   const password = req.body.password;
 
-  AccountController.CreateAccount(logger, mail, password)
-    .then((userData) => {
-      new Response(res, userData).Send();
+  AccountController.CreateAccountFromMail(logger, mail, password)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+router.put('/create/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const oauthToken = req.body.oauthToken;
+  const oauthVerifier = req.body.oauthVerifier;
+
+  AccountController.CreateAccountFromTwitterAuth(logger, oauthToken, oauthVerifier)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -29,8 +43,8 @@ router.post('/login', function(req: express.Request, res: express.Response, next
   const authToken = req.body.authToken;
 
   AccountController.LoginAccount(logger, mail, accountId, password, authToken)
-  .then((userData) => {
-    new Response(res, userData).Send();
+  .then((accountData) => {
+    new Response(res, accountData).Send();
   })
   .catch((error) => {
     new Response(res, null, error).Send();

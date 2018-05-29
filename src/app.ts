@@ -13,7 +13,7 @@ import { SecretsProvider } from './common/secrets-provider';
 import { DatabaseAccess } from './common/db-access';
 import { CacheAccess } from './common/cache-access';
 
-import { OneTimeTokenProvider } from './common/ott-provider';
+import { OneTimeTokenService } from './common/ott-service';
 import { RouteLoader } from './common/route-loader';
 import { AccessLogger } from './logging/access-logger';
 import { AppLogger } from './logging/app-logger';
@@ -64,7 +64,7 @@ const startup = async function() {
   app.use(accessLogger.RequestLogger);
   app.use(accessLogger.ResponseLogger);
 
-  app.use(OneTimeTokenProvider.CheckOTT);
+  app.use(OneTimeTokenService.CheckOTT);
 
   await SecretsProvider.LoadSecrets([
     'send-grid-api-key',

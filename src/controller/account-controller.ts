@@ -6,15 +6,16 @@ import uuidv4 = require('uuid/v4');
 import to from '../utility/to';
 import isMail from '../utility/is-mail';
 
-import { OneTimeTokenProvider } from '../common/ott-provider';
+import { OneTimeTokenService } from '../common/ott-service';
 import { AccountQuery } from '../queries/account-query';
 import { AppLogger } from '../logging/app-logger';
 import { AsyncResult } from '../utility/to';
 import { AccountError } from '../error-codes/account-error';
 import { MailService } from '../common/mail-service';
+import { TwitterService } from '../platforms/twitter-service';
 
 export class AccountController {
-  public static async CreateAccount(logger: AppLogger, mail: string, password: string) {
+  public static async CreateAccountFromMail(logger: AppLogger, mail: string, password: string) {
 
     if (!isMail(mail)) {
       return {
@@ -26,7 +27,7 @@ export class AccountController {
       };
     }
 
-    if (_.isNull(password) || _.isUndefined(password) || password.length < 8) {
+    if (!password || password.length < 8) {
       return {
         msg: {
           error: 'Password is missing or is too short!',
@@ -38,7 +39,7 @@ export class AccountController {
 
     const accountData = await AccountQuery.GetAccount(logger, true, null, mail);
 
-    if (!_.isNull(accountData) && !_.isUndefined(accountData)) {
+    if (accountData) {
       return {
         msg: {
           error: 'Account with mail already exists!',
@@ -62,7 +63,64 @@ export class AccountController {
       throw verificationMailResult.error;
     }
 
-    const ott = await OneTimeTokenProvider.GenerateOTT(asyncResult.result.ACCID);
+    const ott = await OneTimeTokenService.GenerateOTT(asyncResult.result.ACCID);
+
+    const response = {
+      accountId: asyncResult.result.ACCID,
+      authToken: asyncResult.result.AUTHTK,
+      oneTimeToken: ott
+    };
+
+    return {
+      msg: response,
+      statusCode: httpStatus.CREATED
+    };
+  }
+
+  public static async CreateAccountFromTwitterAuth(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+
+    if (!oauthToken || !oauthVerifier) {
+      return {
+        msg: {
+          error: 'OauthToken or OauthVerifier missing!',
+          errorCode: AccountError.TWITTER_AUTH_PARAMS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    // TODO: Also get access tokens and store them!
+    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
+
+    if (!twitterId) {
+      return {
+        msg: {
+          error: 'Couldn\'t retrieve TwitterId with given tokens!',
+          errorCode: AccountError.TWITTER_AUTH_FAILED
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const accountData = await AccountQuery.GetAccount(logger, true, null, null, twitterId);
+
+    if (accountData) {
+      return {
+        msg: {
+          error: 'Account with mail already exists!',
+          errorCode: AccountError.ACCOUNT_ALREADY_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const asyncResult = await to(AccountQuery.CreateAccountFromTwitterId(logger, twitterId));
+
+    if (!_.isNull(asyncResult.error)) {
+      throw asyncResult.error;
+    }
+
+    const ott = await OneTimeTokenService.GenerateOTT(asyncResult.result.ACCID);
 
     const response = {
       accountId: asyncResult.result.ACCID,
@@ -154,7 +212,7 @@ export class AccountController {
       };
     }
 
-    const ott = await OneTimeTokenProvider.GenerateOTT(accountData.ACCID);
+    const ott = await OneTimeTokenService.GenerateOTT(accountData.ACCID);
 
     const response: any = {
       oneTimeToken: ott

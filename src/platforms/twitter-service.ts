@@ -11,6 +11,7 @@ import { SecretsProvider } from '../common/secrets-provider';
 
 export class TwitterService {
   private static oauthClient;
+  private static twitterApiEndpoint = 'https://api.twitter.com/';
 
   public static Init() {
     const apiKeys = SecretsProvider.GetSecret('aika-twitter-api-keys');
@@ -29,30 +30,60 @@ export class TwitterService {
   }
 
   public static async GetOAuthToken(logger: AppLogger) {
+    const requestData = {
+      url: this.twitterApiEndpoint + 'oauth/request_token',
+      method: 'POST'
+    };
+
+    logger.Info('Getting OAuth token!');
+    const loginTokenRequestResult = await to(this.SendSignedAPIRequest(logger, requestData, {}));
+
+    if (!_.isNull(loginTokenRequestResult.error)) {
+      throw loginTokenRequestResult.error;
+    }
+
+    logger.Info('Successfully got OAuth token: ' + loginTokenRequestResult.result.oauth_token);
+
+    return loginTokenRequestResult.result.oauth_token;
+  }
+
+  public static async GetTwitterId(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+    logger.Info('Getting twitter id!');
+    const requestData = {
+      url: this.twitterApiEndpoint + '/oauth/access_token' + '?oauth_verifier=' + oauthVerifier,
+      method: 'POST'
+    };
+
+    const accessTokenRequestResult = await to(this.SendSignedAPIRequest(logger, requestData, {
+      key: oauthToken
+    }));
+
+    if (!_.isNull(accessTokenRequestResult.error)) {
+      throw accessTokenRequestResult.error;
+    }
+
+    return accessTokenRequestResult.result.user_id;
+  }
+
+  private static async SendSignedAPIRequest(logger: AppLogger, requestData: any, token: object) {
     return new Promise((resolve, reject) => {
-      const requestData = {
-        url: 'https://api.twitter.com/oauth/request_token',
-        method: 'POST'
-      };
-
-      logger.Info('Getting OAuth token!');
-
       request({
         url: requestData.url,
         method: requestData.method,
-        headers: this.oauthClient.toHeader(this.oauthClient.authorize(requestData, {}))
+        body: requestData.body,
+        headers: this.oauthClient.toHeader(this.oauthClient.authorize(requestData, token))
       }, (error, response, body) => {
         if (!_.isNull(error)) {
-          error = 'Error getting OAuth token: ' + error;
+          error = 'Error response from signed twitter api request: ' + error;
           logger.Error(error);
           reject(error);
         }
 
         const responseObject = this.ParseResponseObject(body);
 
-        logger.Info('Successfully got OAuth token: ' + responseObject.oauth_token);
+        logger.Info('Successfully got response from signed twitter api request');
 
-        resolve(responseObject.oauth_token);
+        resolve(responseObject);
       });
     });
   }

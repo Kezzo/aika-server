@@ -8,7 +8,8 @@ import to from '../utility/to';
 import { AsyncResult } from '../utility/to';
 
 export class AccountQuery {
-  public static async GetAccount(logger: AppLogger, keyOnly: boolean, accountId?: string, mail?: string) {
+  public static async GetAccount(logger: AppLogger, keyOnly: boolean,
+    accountId?: string, mail?: string, twitterId?: string) {
     logger.Info('GetAccount for id: ' + accountId);
 
     let asyncResult: AsyncResult;
@@ -16,28 +17,24 @@ export class AccountQuery {
       TableName: 'ACCOUNTS'
     };
 
-    if (!_.isNull(accountId) && !_.isUndefined(accountId)) {
+    if (accountId) {
       params.Key = { ACCID: accountId };
       asyncResult = await to(DatabaseAccess.Get(logger, params));
-    } else if (!_.isNull(mail) && !_.isUndefined(mail)) {
-      params.IndexName = 'MAIL';
-      params.ExpressionAttributeNames = { '#key': 'MAIL' };
-      params.ExpressionAttributeValues = { ':value': mail };
-      params.KeyConditionExpression = '#key = :value';
-      params.Limit = 1;
-
-      if (keyOnly) {
-        params.ProjectionExpression = 'MAIL';
+    } else {
+      if (mail) {
+        this.AddQueryParams(params, 'MAIL', mail, keyOnly);
+      } else if (twitterId) {
+        this.AddQueryParams(params, 'TWITID', twitterId, keyOnly);
       }
 
       asyncResult = await to(DatabaseAccess.Query(logger, params));
 
-      if (!_.isNull(asyncResult.result) && _.isArray(asyncResult.result)) {
+      if (asyncResult.result && _.isArray(asyncResult.result)) {
         asyncResult.result = asyncResult.result[0];
       }
     }
 
-    if (!_.isNull(asyncResult.error)) {
+    if (asyncResult.error) {
       throw asyncResult.error;
     } else {
       logger.Info('Got data with id: ' + accountId + ': ' + JSON.stringify(asyncResult.result));
@@ -51,22 +48,29 @@ export class AccountQuery {
     return await this.CreateAccount(logger, mail, passwordHash);
   }
 
+  public static async CreateAccountFromTwitterId(logger: AppLogger, twitterId: string) {
+    logger.Info('Creating account for user with twitterId: ' + twitterId);
+    return await this.CreateAccount(logger, null, null, twitterId);
+  }
+
   // TODO: Add more options like GoogleID, FacebookID or TwitterID
-  private static async CreateAccount(logger: AppLogger, mail?: string, passwordHash?: string) {
+  private static async CreateAccount(logger: AppLogger, mail?: string, passwordHash?: string, twitterId?: string) {
     const accountId = uuidv4();
     const authToken = uuidv4();
 
-    const itemToCreate =  {
+    const itemToCreate: any =  {
       ACCID: accountId,
-      MAIL: '',
-      PWHASH: '',
       AUTHTK: authToken,
       VERF: false
     };
 
-    if (!_.isUndefined(mail)) {
+    if (mail) {
       itemToCreate.MAIL = mail;
       itemToCreate.PWHASH = passwordHash;
+    } else if (twitterId) {
+      itemToCreate.TWITID = twitterId;
+    } else {
+      throw new Error('Creating an account require a mail or a twitterId!');
     }
 
     const queryParams = {
@@ -76,7 +80,7 @@ export class AccountQuery {
 
     const asyncResult = await to(DatabaseAccess.Put(logger, queryParams));
 
-    if (!_.isNull(asyncResult.error)) {
+    if (asyncResult.error) {
       throw asyncResult.error;
     } else {
       logger.Info('Account created successfully: ' + JSON.stringify(asyncResult.result));
@@ -114,7 +118,7 @@ export class AccountQuery {
 
     const asyncResult = await to(DatabaseAccess.Update(logger, updateParams));
 
-    if (!_.isNull(asyncResult.error)) {
+    if (asyncResult.error) {
       if (asyncResult.error.code === 'ConditionalCheckFailedException') {
         return false;
       } else {
@@ -128,14 +132,14 @@ export class AccountQuery {
   }
 
   public static async StorePasswordResetToken(accountId: string) {
-    if (_.isUndefined(accountId)) {
+    if (!accountId) {
       return null;
     }
 
     const resetToken = uuidv4();
     const setResult = await to(CacheAccess.Set('RESET-' + accountId, resetToken, 900));
 
-    if (!_.isNull(setResult.error)) {
+    if (setResult.error) {
       throw setResult.error;
     }
 
@@ -143,16 +147,28 @@ export class AccountQuery {
   }
 
   public static async GetPasswordResetToken(accountId: string) {
-    if (_.isUndefined(accountId)) {
+    if (!accountId) {
       return null;
     }
 
     const getResult = await to(CacheAccess.Get('RESET-' + accountId));
 
-    if (!_.isNull(getResult.error)) {
+    if (getResult.error) {
       throw getResult.error;
     }
 
     return getResult.result;
+  }
+
+  private static AddQueryParams(params: any, indexName: string, queryValue: string, keyOnly: boolean) {
+    params.IndexName = indexName;
+    params.ExpressionAttributeNames = { '#key': indexName };
+    params.ExpressionAttributeValues = { ':value': queryValue };
+    params.KeyConditionExpression = '#key = :value';
+    params.Limit = 1;
+
+    if (keyOnly) {
+      params.ProjectionExpression = indexName;
+    }
   }
 }

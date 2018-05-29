@@ -6,18 +6,20 @@ import uuidv4 = require('uuid/v4');
 import { CacheAccess } from './cache-access';
 import to from '../utility/to';
 
-export class OneTimeTokenProvider {
+export class OneTimeTokenService {
   private static nonOTTRequestPaths = new Set([
-    '/account/create',
+    '/account/create/mail',
+    '/account/create/twitter',
     '/account/login',
     '/account/verify',
     '/account/password/reset',
-    '/account/password/change'
+    '/account/password/change',
+    '/platform/twitter/logintoken'
   ]);
 
   public static async CheckOTT(req: express.Request, res: express.Response, next: NextFunction) {
     try {
-      if (OneTimeTokenProvider.nonOTTRequestPaths.has(req.path)) {
+      if (OneTimeTokenService.nonOTTRequestPaths.has(req.path)) {
         next();
         return;
       }
@@ -41,7 +43,7 @@ export class OneTimeTokenProvider {
       }
 
       if (_.isEqual(ott, getResult.result)) {
-        const newOTT = await OneTimeTokenProvider.GenerateOTT(accountId);
+        const newOTT = await OneTimeTokenService.GenerateOTT(accountId);
         res.set('x-one-time-token', newOTT);
         next();
       } else {
