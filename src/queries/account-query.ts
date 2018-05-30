@@ -137,7 +137,7 @@ export class AccountQuery {
     }
 
     const resetToken = uuidv4();
-    const setResult = await to(CacheAccess.Set('RESET-' + accountId, resetToken, 900));
+    const setResult = await to(CacheAccess.Set(this.GetResetTokenKey(accountId), resetToken, 900));
 
     if (setResult.error) {
       throw setResult.error;
@@ -151,13 +151,31 @@ export class AccountQuery {
       return null;
     }
 
-    const getResult = await to(CacheAccess.Get('RESET-' + accountId));
+    const getResult = await to(CacheAccess.Get(this.GetResetTokenKey(accountId)));
 
     if (getResult.error) {
       throw getResult.error;
     }
 
     return getResult.result;
+  }
+
+  public static async InvalidatePasswordResetToken(accountId: string) {
+    if (!accountId) {
+      return false;
+    }
+
+    const getResult = await to(CacheAccess.Delete(this.GetResetTokenKey(accountId)));
+
+    if (getResult.error) {
+      throw getResult.error;
+    }
+
+    return getResult.result;
+  }
+
+  private static GetResetTokenKey(accountId: string) {
+    return 'RESET-' + accountId;
   }
 
   private static AddQueryParams(params: any, indexName: string, queryValue: string, keyOnly: boolean) {

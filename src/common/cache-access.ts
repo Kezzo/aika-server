@@ -37,6 +37,18 @@ export class CacheAccess {
     });
   }
 
+  public static async Delete(...keys: string[]) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.DEL(keys, (error, success) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(success);
+      });
+    });
+  }
+
   private static GetCacheEndpoint() {
     switch (process.env.NODE_ENV) {
     case 'DEV':

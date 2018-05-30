@@ -383,7 +383,12 @@ export class AccountController {
       VERF: true
     });
 
-    // TODO: Delete existing OTT, user is forced to do a new login anyway so OTT is generated again.
+    if (!updateSuccesful) {
+      throw new Error('Account update unsuccessful!');
+    }
+
+    await AccountQuery.InvalidatePasswordResetToken(accountId);
+    await OneTimeTokenService.InvalidateOTT(accountData.ACCID);
 
     return {
       msg: 'Password has been successfully reset!',

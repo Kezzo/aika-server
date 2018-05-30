@@ -29,7 +29,7 @@ export class OneTimeTokenService {
       const accountId = req.get('x-account-id');
       const ott = req.get('x-one-time-token');
 
-      if (_.isNull(accountId) || _.isUndefined(accountId) || _.isNull(ott) || _.isUndefined(ott)) {
+      if (!accountId || !ott) {
         res.statusCode = 400;
         res.send({
           error: 'OneTimeToken or AccountId missing!',
@@ -38,9 +38,9 @@ export class OneTimeTokenService {
         return;
       }
 
-      const getResult = await to(CacheAccess.Get('OTT-' + accountId));
+      const getResult = await to(CacheAccess.Get(this.GetOTTKey(accountId)));
 
-      if (!_.isNull(getResult.error)) {
+      if (getResult.error) {
         throw getResult.error;
       }
 
@@ -67,12 +67,26 @@ export class OneTimeTokenService {
   public static async GenerateOTT(accountId: string) {
     const newOTT = uuidv4();
 
-    const setResult = await to(CacheAccess.Set('OTT-' + accountId, newOTT, 900));
+    const setResult = await to(CacheAccess.Set(this.GetOTTKey(accountId), newOTT, 900));
 
     if (!_.isNull(setResult.error)) {
       throw setResult.error;
     }
 
     return newOTT;
+  }
+
+  public static async InvalidateOTT(accountId: string) {
+    const deleteResult = await to(CacheAccess.Delete(this.GetOTTKey(accountId)));
+
+    if (!_.isNull(deleteResult.error)) {
+      throw deleteResult.error;
+    }
+
+    return deleteResult;
+  }
+
+  private static GetOTTKey(accountId: string) {
+    return 'OTT-' + accountId;
   }
 }
