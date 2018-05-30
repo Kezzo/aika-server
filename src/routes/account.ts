@@ -49,6 +49,20 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
   });
 });
 
+router.post('/login/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const oauthToken = req.body.oauthToken;
+  const oauthVerifier = req.body.oauthVerifier;
+
+  AccountController.LoginAccountViaTwitter(logger, oauthToken, oauthVerifier)
+  .then((accountData) => {
+    new Response(res, accountData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
 router.post('/login/accountid', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.body.accountId;

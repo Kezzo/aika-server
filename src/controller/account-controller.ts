@@ -52,14 +52,14 @@ export class AccountController {
     const passwordHash = await bcrypt.hash(password, 10);
     const asyncResult = await to(AccountQuery.CreateAccountFromMail(logger, mail, passwordHash));
 
-    if (!_.isNull(asyncResult.error)) {
+    if (asyncResult.error) {
       throw asyncResult.error;
     }
 
     const verificationMailResult = await to(MailService.SendVerificationMail(
       mail, asyncResult.result.ACCID));
 
-    if (!_.isNull(verificationMailResult.error)) {
+    if (verificationMailResult.error) {
       throw verificationMailResult.error;
     }
 
@@ -107,7 +107,7 @@ export class AccountController {
     if (accountData) {
       return {
         msg: {
-          error: 'Account with mail already exists!',
+          error: 'Account with twitterid already exists!',
           errorCode: AccountError.ACCOUNT_ALREADY_EXISTS
         },
         statusCode: httpStatus.BAD_REQUEST
@@ -116,7 +116,7 @@ export class AccountController {
 
     const asyncResult = await to(AccountQuery.CreateAccountFromTwitterId(logger, twitterId));
 
-    if (!_.isNull(asyncResult.error)) {
+    if (asyncResult.error) {
       throw asyncResult.error;
     }
 
@@ -135,7 +135,7 @@ export class AccountController {
   }
 
   public static async VerifyAccount(logger: AppLogger, accountId: string) {
-    if (_.isUndefined(accountId) || _.isNull(accountId) || accountId.length === 0) {
+    if (!accountId || accountId.length === 0) {
       return {
         msg: {
           error: 'The account verification requires an accountId!',
@@ -164,8 +164,7 @@ export class AccountController {
   }
 
   public static async LoginAccountViaMail(logger: AppLogger, mail: string, password: string) {
-    if ((_.isUndefined(mail) || _.isNull(mail)) ||
-      (_.isUndefined(password) || _.isNull(password))) {
+    if (!mail || !password) {
       return {
         msg: {
           error: 'Login via mail requires mail and password!',
@@ -180,12 +179,41 @@ export class AccountController {
     });
   }
 
-  public static async LoginAccountViaAuthToken(logger: AppLogger, accountId: string, authToken: string) {
-    if ((_.isUndefined(accountId) || _.isNull(accountId)) ||
-      (_.isUndefined(authToken) || _.isNull(authToken))) {
+  public static async LoginAccountViaTwitter(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+    if (!oauthToken || !oauthVerifier) {
       return {
         msg: {
-          error: 'Login requires either mail&password or accountId&authToken!',
+          error: 'Login via twitter requires oauthToken and oauthVerifier!',
+          errorCode: AccountError.LOGIN_DETAILS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
+
+    if (!twitterId) {
+      return {
+        msg: {
+          error: 'Couldn\'t retrieve TwitterId with given tokens!',
+          errorCode: AccountError.TWITTER_AUTH_FAILED
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    return await this.LoginAccount(logger, null, null, twitterId, true, (accountData) => {
+      return new Promise((resolve) => {
+        resolve(true); // getting the twitterid confirms that the user is authenticated.
+      });
+    });
+  }
+
+  public static async LoginAccountViaAuthToken(logger: AppLogger, accountId: string, authToken: string) {
+    if (!accountId || !authToken) {
+      return {
+        msg: {
+          error: 'Login requires accountId and authToken!',
           errorCode: AccountError.LOGIN_DETAILS_MISSING
         },
         statusCode: httpStatus.BAD_REQUEST
@@ -203,10 +231,10 @@ export class AccountController {
     isInitialSignIn: boolean, authVerificationCallback: (accountData) => Promise<boolean>) {
     const accountData = await AccountQuery.GetAccount(logger, false, accountId, mail, twitterId);
 
-    if (_.isNull(accountData) || _.isUndefined(accountData)) {
+    if (!accountData) {
       return {
         msg: {
-          error: 'Account with mail/accountId doesn\'t exists!',
+          error: 'Account doesn\'t exist!',
           errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
         },
         statusCode: httpStatus.BAD_REQUEST
@@ -222,7 +250,7 @@ export class AccountController {
     if (!authSuccessful) {
       return {
         msg: {
-          error: 'Password or authToken is not correct!',
+          error: 'Authentication parameters are not correct!',
           errorCode: AccountError.AUTH_PARAM_INCORRECT
         },
         statusCode: httpStatus.BAD_REQUEST
@@ -247,7 +275,7 @@ export class AccountController {
   }
 
   public static async InitiatePasswordReset(logger: AppLogger, mail: string) {
-    if (_.isUndefined(mail) || _.isNull(mail)) {
+    if (!mail) {
       return {
         msg: {
           error: 'Password reset requires mail of the account!',
@@ -259,7 +287,7 @@ export class AccountController {
 
     const accountData = await AccountQuery.GetAccount(logger, false, null, mail);
 
-    if (_.isUndefined(accountData) || _.isNull(accountData)) {
+    if (!accountData) {
       return {
         msg: {
           error: 'Account doesn\'t exists!',
@@ -271,14 +299,14 @@ export class AccountController {
 
     const resetToken = await AccountQuery.StorePasswordResetToken(accountData.ACCID);
 
-    if (_.isNull(resetToken)) {
+    if (!resetToken) {
       throw new Error('Reset token couldn\'nt be generated!');
     }
 
     const resetPasswordMailResult = await to(MailService.SendResetPasswordMail(
       mail, accountData.ACCID, resetToken));
 
-    if (!_.isNull(resetPasswordMailResult.error)) {
+    if (resetPasswordMailResult.error) {
       throw resetPasswordMailResult.error;
     }
 
@@ -290,8 +318,7 @@ export class AccountController {
 
   public static async CompletePasswordReset(logger: AppLogger, accountId: string,
     resetToken: string, newPassword: string) {
-    if ((_.isUndefined(accountId) || _.isNull(accountId)) ||
-        (_.isUndefined(resetToken) || _.isNull(resetToken))) {
+    if (!accountId || !resetToken) {
       return {
         msg: {
           error: 'Password reset completion requires an accounId and the valid reset token!',
@@ -301,7 +328,7 @@ export class AccountController {
       };
     }
 
-    if (_.isNull(newPassword) || _.isUndefined(newPassword) || newPassword.length < 8) {
+    if (!newPassword || newPassword.length < 8) {
       return {
         msg: {
           error: 'Password is missing or is too short!',
@@ -325,7 +352,7 @@ export class AccountController {
 
     const accountData = await AccountQuery.GetAccount(logger, false, accountId, null);
 
-    if (_.isUndefined(accountData) || _.isNull(accountData)) {
+    if (!accountData) {
       return {
         msg: {
           error: 'Account doesn\'t exists!',

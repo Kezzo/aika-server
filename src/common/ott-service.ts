@@ -11,6 +11,7 @@ export class OneTimeTokenService {
     '/account/create/mail',
     '/account/create/twitter',
     '/account/login/mail',
+    '/account/login/twitter',
     '/account/login/accountid',
     '/account/verify',
     '/account/password/reset',
