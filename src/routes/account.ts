@@ -35,14 +35,26 @@ router.put('/create/twitter', function(req: express.Request, res: express.Respon
     });
 });
 
-router.post('/login', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.post('/login/mail', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
-  const accountId = req.body.accountId;
   const password = req.body.password;
+
+  AccountController.LoginAccountViaMail(logger, mail, password)
+  .then((accountData) => {
+    new Response(res, accountData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
+router.post('/login/accountid', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.body.accountId;
   const authToken = req.body.authToken;
 
-  AccountController.LoginAccount(logger, mail, accountId, password, authToken)
+  AccountController.LoginAccountViaAuthToken(logger, accountId, authToken)
   .then((accountData) => {
     new Response(res, accountData).Send();
   })

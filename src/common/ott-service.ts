@@ -10,7 +10,8 @@ export class OneTimeTokenService {
   private static nonOTTRequestPaths = new Set([
     '/account/create/mail',
     '/account/create/twitter',
-    '/account/login',
+    '/account/login/mail',
+    '/account/login/accountid',
     '/account/verify',
     '/account/password/reset',
     '/account/password/change',

@@ -163,16 +163,26 @@ export class AccountController {
     }
   }
 
-  public static async LoginAccount(logger: AppLogger, mail: string, accountId: string,
-    password: string, authToken: string) {
+  public static async LoginAccountViaMail(logger: AppLogger, mail: string, password: string) {
+    if ((_.isUndefined(mail) || _.isNull(mail)) ||
+      (_.isUndefined(password) || _.isNull(password))) {
+      return {
+        msg: {
+          error: 'Login via mail requires mail and password!',
+          errorCode: AccountError.LOGIN_DETAILS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
 
-    const mailOrPasswordMissing = (_.isUndefined(mail) || _.isNull(mail)) ||
-      (_.isUndefined(password) || _.isNull(password));
+    return await this.LoginAccount(logger, null, mail, null, true, (accountData) => {
+      return bcrypt.compare(password, accountData.PWHASH);
+    });
+  }
 
-    const accountIdOrAuthTokenMissing = (_.isUndefined(accountId) || _.isNull(accountId)) ||
-      (_.isUndefined(authToken) || _.isNull(authToken));
-
-    if (mailOrPasswordMissing && accountIdOrAuthTokenMissing) {
+  public static async LoginAccountViaAuthToken(logger: AppLogger, accountId: string, authToken: string) {
+    if ((_.isUndefined(accountId) || _.isNull(accountId)) ||
+      (_.isUndefined(authToken) || _.isNull(authToken))) {
       return {
         msg: {
           error: 'Login requires either mail&password or accountId&authToken!',
@@ -182,7 +192,16 @@ export class AccountController {
       };
     }
 
-    const accountData = await AccountQuery.GetAccount(logger, false, accountId, mail);
+    return await this.LoginAccount(logger, accountId, null, null, false, (accountData) => {
+      return new Promise((resolve) => {
+        resolve(_.isEqual(accountData.AUTHTK, authToken));
+      });
+    });
+  }
+
+  private static async LoginAccount(logger: AppLogger, accountId: string, mail: string, twitterId: string,
+    isInitialSignIn: boolean, authVerificationCallback: (accountData) => Promise<boolean>) {
+    const accountData = await AccountQuery.GetAccount(logger, false, accountId, mail, twitterId);
 
     if (_.isNull(accountData) || _.isUndefined(accountData)) {
       return {
@@ -196,10 +215,8 @@ export class AccountController {
 
     let authSuccessful: boolean = false;
 
-    if (!accountIdOrAuthTokenMissing) {
-      authSuccessful = _.isEqual(accountData.AUTHTK, authToken);
-    } else if (!mailOrPasswordMissing) {
-      authSuccessful = await bcrypt.compare(password, accountData.PWHASH);
+    if (authVerificationCallback) {
+      authSuccessful = await authVerificationCallback(accountData);
     }
 
     if (!authSuccessful) {
@@ -218,7 +235,7 @@ export class AccountController {
       oneTimeToken: ott
     };
 
-    if (!mailOrPasswordMissing) {
+    if (isInitialSignIn) {
       response.accountId = accountData.ACCID;
       response.authToken = accountData.AUTHTK;
     }
