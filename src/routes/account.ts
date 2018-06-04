@@ -7,6 +7,25 @@ import { AccountController } from '../controller/account-controller';
 import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
+/**
+ * @api {put} /account/create/mail Create a user account with a mail and password
+ * @apiName Create account with mail
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "mail" : "jon@tinkrinc.co",
+ *       "password" : "password1234"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 201 CREATED
+ *     {
+ *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
+ *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
 router.put('/create/mail', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
@@ -21,6 +40,25 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
     });
 });
 
+/**
+ * @api {put} /account/create/twitter Create a user account with twitter oauth tokens
+ * @apiName Create account with twitter
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "oauthToken": "K6pvHkAAACAA5UiLAADDSY7Iugzo",
+ *       "oauthVerifier": "fBObTFO3Uf6YdAIEUtAAtVfkwel1KJt7C"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 201 CREATED
+ *     {
+ *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
+ *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
 router.put('/create/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const oauthToken = req.body.oauthToken;
@@ -35,6 +73,25 @@ router.put('/create/twitter', function(req: express.Request, res: express.Respon
     });
 });
 
+/**
+ * @api {post} /account/login/mail Login to user account with a mail and password
+ * @apiName Login to account with mail
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "mail" : "jon@tinkrinc.co",
+ *       "password" : "password1234"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
+ *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
 router.post('/login/mail', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
@@ -49,6 +106,25 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
   });
 });
 
+/**
+ * @api {post} /account/login/twitter Login to user account with twitter oauth tokens
+ * @apiName Login to account with twitter
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "oauthToken": "K6pvHkAAACAA5UiLAADDSY7Iugzo",
+ *       "oauthVerifier": "fBObTFO3Uf6YdAIEUtAAtVfkwel1KJt7C"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
+ *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
 router.post('/login/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const oauthToken = req.body.oauthToken;
@@ -63,6 +139,23 @@ router.post('/login/twitter', function(req: express.Request, res: express.Respon
   });
 });
 
+/**
+ * @api {post} /account/login/accountid Login to user account with accountId
+ * @apiName Login to account with accountId
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "accountId" : "2c5a0361-8745-4a41-fke2-f03d67ec3152",
+ *       "authToken" : "40391a96-0be7-436e-b109-5dfb05944c45"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
 router.post('/login/accountid', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.body.accountId;
@@ -77,6 +170,17 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
   });
 });
 
+/**
+ * @api {get} /account/verify Verify account created with mail
+ * @apiName Verify account created with mail
+ * @apiGroup Account
+ *
+ * @apiParam {String} accountId The account id of the created account. Sent via mail.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     <p> Account verification successful!</p>
+ */
 router.get('/verify', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.param('accountId');
@@ -90,6 +194,19 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
   });
 });
 
+/**
+ * @api {post} /account/password/reset Starts the password reset flow
+ * @apiName Starts the password reset flow
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "mail" : "jelinski.jon@gmail.com"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ */
 router.post('/password/reset', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
@@ -103,6 +220,22 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
   });
 });
 
+/**
+ * @api {post} /account/password/reset Completes the password reset flow
+ * @apiName Completes the password reset flow
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *      "accountId" : "2c5a0361-8745-4a31-aad2-f93d89ec3152",
+ * 	    "resetToken" : "c07eadb3-3fad-4251-ac07-3fd9434dccd6",
+ * 	    "newPassword" : "thisIsABetterPassword"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     "Password has been successfully reset!"
+ */
 router.post('/password/change', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.body.accountId;

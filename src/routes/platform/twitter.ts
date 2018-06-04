@@ -8,6 +8,16 @@ import { Response } from '../../common/response';
 import { PlatformController } from '../../controller/platform-controller';
 import { Platform } from '../../platforms/platforms';
 
+/**
+ * @api {get} /platform/twitter/logintoken Gets a login token from twitter
+ * @apiName Gets a login token from twitter
+ * @apiGroup Platform
+ *
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     "_uSMOgAAAAAA6UiLAAABY8xmWkw"
+ */
 router.get('/logintoken', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
 

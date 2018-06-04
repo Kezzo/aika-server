@@ -60,6 +60,11 @@ const startup = async function() {
     res.send();
   });
 
+  if (process.env.NODE_ENV !== 'LIVE') {
+    // api documentation
+    app.use('/api', express.static(path.join(__dirname, '../apidoc')));
+  }
+
   const accessLogger = new AccessLogger(logDirectory, logStreamToUse);
   app.use(accessLogger.RequestLogger);
   app.use(accessLogger.ResponseLogger);
