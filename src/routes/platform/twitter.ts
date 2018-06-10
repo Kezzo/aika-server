@@ -9,8 +9,9 @@ import { PlatformController } from '../../controller/platform-controller';
 import { Platform } from '../../platforms/platforms';
 
 /**
- * @api {get} /platform/twitter/logintoken Gets a login token from twitter
- * @apiName Gets a login token from twitter
+ * @api {get} /platform/twitter/logintoken /twitter/logintoken
+ * @apiName /platform/twitter/logintoken
+ * @apiDescription Gets a login token from twitter
  * @apiGroup Platform
  *
  *

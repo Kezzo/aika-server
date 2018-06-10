@@ -8,8 +8,9 @@ import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
 /**
- * @api {put} /account/create/mail Create a user account with a mail and password
- * @apiName Create account with mail
+ * @api {put} /account/create/mail /create/mail
+ * @apiName /account/create/mail
+ * @apiDescription Create a user account with a mail and password.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -41,8 +42,9 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
 });
 
 /**
- * @api {put} /account/create/twitter Create a user account with twitter oauth tokens
- * @apiName Create account with twitter
+ * @api {put} /account/create/twitter /create/twitter
+ * @apiName /account/create/twitter
+ * @apiDescription Create a user account with twitter oauth tokens.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -74,8 +76,9 @@ router.put('/create/twitter', function(req: express.Request, res: express.Respon
 });
 
 /**
- * @api {post} /account/login/mail Login to user account with a mail and password
- * @apiName Login to account with mail
+ * @api {post} /account/login/mail /login/mail
+ * @apiName /account/login/mail
+ * @apiDescription Login to user account with a mail and password.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -107,8 +110,9 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
 });
 
 /**
- * @api {post} /account/login/twitter Login to user account with twitter oauth tokens
- * @apiName Login to account with twitter
+ * @api {post} /account/login/twitter /login/twitter
+ * @apiName /account/login/twitter
+ * @apiDescription Login to user account with twitter oauth tokens.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -140,8 +144,9 @@ router.post('/login/twitter', function(req: express.Request, res: express.Respon
 });
 
 /**
- * @api {post} /account/login/accountid Login to user account with accountId
- * @apiName Login to account with accountId
+ * @api {post} /account/login/accountid /login/accountid
+ * @apiName /account/login/accountid
+ * @apiDescription Login to user account with accountId.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -171,8 +176,9 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
 });
 
 /**
- * @api {get} /account/verify Verify account created with mail
- * @apiName Verify account created with mail
+ * @api {get} /account/verify /verify
+ * @apiName /account/verify
+ * @apiDescription Verify account created with mail.
  * @apiGroup Account
  *
  * @apiParam {String} accountId The account id of the created account. Sent via mail.
@@ -195,8 +201,9 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
 });
 
 /**
- * @api {post} /account/password/reset Starts the password reset flow
- * @apiName Starts the password reset flow
+ * @api {post} /account/password/reset /password/reset
+ * @apiName /account/password/reset
+ * @apiDescription Starts the password reset flow.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -221,8 +228,9 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
 });
 
 /**
- * @api {post} /account/password/reset Completes the password reset flow
- * @apiName Completes the password reset flow
+ * @api {post} /account/password/change /password/change
+ * @apiName /account/password/change
+ * @apiDescription Completes the password reset flow.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
