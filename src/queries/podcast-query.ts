@@ -34,6 +34,27 @@ export class PodcastQuery {
     return asyncResult.result.PODCASTS;
   }
 
+  public static async GetEpisodes(logger: AppLogger, podcastId: string) {
+    if (!podcastId) {
+      return null;
+    }
+
+    const params: any = {
+      TableName: 'EPISODES'
+    };
+
+    // TODO: Add pagination support
+    DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, 30);
+
+    const asyncResult = await to(DatabaseAccess.Query(logger, params));
+
+    if (asyncResult.error) {
+      throw asyncResult.error;
+    }
+
+    return asyncResult.result;
+  }
+
   public static async GetFollowedPodcastIds(logger: AppLogger, accoundId: string) {
 
     const params: any = {
@@ -41,7 +62,7 @@ export class PodcastQuery {
     };
 
     // TODO: Add start from relevance sort key (greater than)
-    DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, false, 40);
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, null, false, 40);
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));
 

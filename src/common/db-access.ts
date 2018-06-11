@@ -118,16 +118,19 @@ export class DatabaseAccess {
     });
   }
 
-  public static AddQueryParams(params: any, indexName: string, queryValue: string,
-    keyOnly: boolean, limit: number = 1) {
-    params.IndexName = indexName;
-    params.ExpressionAttributeNames = { '#key': indexName };
+  public static AddQueryParams(params: any, partitionKeyName: string,
+    queryValue: string, secondaryIndexName: string, keyOnly: boolean, limit: number = 1) {
+    if (secondaryIndexName) {
+      params.IndexName = secondaryIndexName;
+    }
+
+    params.ExpressionAttributeNames = { '#key': partitionKeyName };
     params.ExpressionAttributeValues = { ':value': queryValue };
     params.KeyConditionExpression = '#key = :value';
     params.Limit = limit;
 
     if (keyOnly) {
-      params.ProjectionExpression = indexName;
+      params.ProjectionExpression = partitionKeyName;
     }
   }
 }

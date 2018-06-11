@@ -22,9 +22,9 @@ export class AccountQuery {
       asyncResult = await to(DatabaseAccess.Get(logger, params));
     } else {
       if (mail) {
-        DatabaseAccess.AddQueryParams(params, 'MAIL', mail, keyOnly);
+        DatabaseAccess.AddQueryParams(params, 'MAIL', mail, 'MAIL', keyOnly);
       } else if (twitterId) {
-        DatabaseAccess.AddQueryParams(params, 'TWITID', twitterId, keyOnly);
+        DatabaseAccess.AddQueryParams(params, 'TWITID', twitterId, 'TWITID', keyOnly);
       }
 
       asyncResult = await to(DatabaseAccess.Query(logger, params));

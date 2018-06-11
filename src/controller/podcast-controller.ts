@@ -34,7 +34,26 @@ export class PodcastController {
     }
 
     return {
-      msg: JSON.stringify(followedPodcasts),
+      msg: followedPodcasts ? followedPodcasts : '',
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async GetEpisodesFromPodcast(logger: AppLogger, podcastId: string) {
+    if (!podcastId) {
+      return {
+        msg: {
+          error: 'Podcast id is missing!',
+          errorCode: PodcastError.PODCAST_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const episodes = await PodcastQuery.GetEpisodes(logger, podcastId);
+
+    return {
+      msg: episodes ? episodes : '',
       statusCode: httpStatus.OK
     };
   }
