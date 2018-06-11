@@ -38,7 +38,7 @@ export class OneTimeTokenService {
         return;
       }
 
-      const getResult = await to(CacheAccess.Get(this.GetOTTKey(accountId)));
+      const getResult = await to(CacheAccess.Get(OneTimeTokenService.GetOTTKey(accountId)));
 
       if (getResult.error) {
         throw getResult.error;

@@ -22,9 +22,9 @@ export class AccountQuery {
       asyncResult = await to(DatabaseAccess.Get(logger, params));
     } else {
       if (mail) {
-        this.AddQueryParams(params, 'MAIL', mail, keyOnly);
+        DatabaseAccess.AddQueryParams(params, 'MAIL', mail, keyOnly);
       } else if (twitterId) {
-        this.AddQueryParams(params, 'TWITID', twitterId, keyOnly);
+        DatabaseAccess.AddQueryParams(params, 'TWITID', twitterId, keyOnly);
       }
 
       asyncResult = await to(DatabaseAccess.Query(logger, params));
@@ -176,17 +176,5 @@ export class AccountQuery {
 
   private static GetResetTokenKey(accountId: string) {
     return 'RESET-' + accountId;
-  }
-
-  private static AddQueryParams(params: any, indexName: string, queryValue: string, keyOnly: boolean) {
-    params.IndexName = indexName;
-    params.ExpressionAttributeNames = { '#key': indexName };
-    params.ExpressionAttributeValues = { ':value': queryValue };
-    params.KeyConditionExpression = '#key = :value';
-    params.Limit = 1;
-
-    if (keyOnly) {
-      params.ProjectionExpression = indexName;
-    }
   }
 }

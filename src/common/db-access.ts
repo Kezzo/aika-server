@@ -2,6 +2,8 @@ import AWS = require('aws-sdk');
 import _ = require('underscore');
 
 import { AppLogger } from '../logging/app-logger';
+import { BatchGetItemInput, GetItemInput, PutItemInput,
+  QueryInput, UpdateItemInput, DeleteItemInput } from 'aws-sdk/clients/dynamodb';
 
 export class DatabaseAccess {
   private static dynamodb: AWS.DynamoDB.DocumentClient = null;
@@ -18,7 +20,7 @@ export class DatabaseAccess {
     appLogger.Info('DatabaseAccess Init!');
   }
 
-  public static async Put(logger: AppLogger, params) {
+  public static async Put(logger: AppLogger, params: PutItemInput) {
     logger.Info('DB Put: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
@@ -35,7 +37,7 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Get(logger: AppLogger, params) {
+  public static async Get(logger: AppLogger, params: GetItemInput) {
     logger.Info('DB Get: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
@@ -50,7 +52,27 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Query(logger: AppLogger, params) {
+  public static async GetMany(logger: AppLogger, params: BatchGetItemInput) {
+    logger.Info('DB GetMany: ' + JSON.stringify(params));
+    const dynamodb = this.dynamodb;
+    return new Promise(function(resolve, reject) {
+      dynamodb.batchGet(params, function(error, data) {
+        logger.Info('DB Got data:' + JSON.stringify(data.Responses) + ' error: ' + error);
+
+        if (!_.isNull(error)) {
+          return reject(error);
+        }
+
+        if (!_.isEmpty(data.UnprocessedKeys)) {
+          logger.Warn('Unprocessed keys received after GetMany: ' + JSON.stringify(data.UnprocessedKeys));
+        }
+
+        return resolve(data.Responses);
+      });
+    });
+  }
+
+  public static async Query(logger: AppLogger, params: QueryInput) {
     logger.Info('DB Query: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
@@ -65,7 +87,7 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Update(logger: AppLogger, params) {
+  public static async Update(logger: AppLogger, params: UpdateItemInput) {
     logger.Info('DB Update: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
@@ -80,7 +102,7 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Delete(logger: AppLogger, params) {
+  public static async Delete(logger: AppLogger, params: DeleteItemInput) {
     logger.Info('DB Delete: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
@@ -94,5 +116,18 @@ export class DatabaseAccess {
         return resolve(data.Attributes);
       });
     });
+  }
+
+  public static AddQueryParams(params: any, indexName: string, queryValue: string,
+    keyOnly: boolean, limit: number = 1) {
+    params.IndexName = indexName;
+    params.ExpressionAttributeNames = { '#key': indexName };
+    params.ExpressionAttributeValues = { ':value': queryValue };
+    params.KeyConditionExpression = '#key = :value';
+    params.Limit = limit;
+
+    if (keyOnly) {
+      params.ProjectionExpression = indexName;
+    }
   }
 }
