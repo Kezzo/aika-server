@@ -17,16 +17,16 @@ import { Response } from '../common/response';
  *     HTTP/1.1 201 OK
  *     [
  *       {
- *         "RSS":"www.podcastauthor2.com/rss",
- *         "ATHR":"Jack White",
- *         "SRC":"itunes",
- *         "IMG":"https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
- *         "PID":"55a3f2e0-808e-45c3-ae3f-6ad0f5e30775",
- *         "ATHRURL":"www.podcastauthor2.com",
- *         "DESC":"But this is just a tribute",
- *         "SRCL":"itunes.com",
- *         "NAME":"The best Podcast in the World2",
- *         "GENRE":"COMEDY"
+ *          "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
+ *          "name": "The best Podcast in the World",
+ *          "description": "But this is just a tribute",
+ *          "author": "Jack Green",
+ *          "authorUrl": "www.podcastauthor2.com",
+ *          "genre": "SCIENCE",
+ *          "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
+ *          "rss": "www.podcastauthor2.com/rss",
+ *          "source": "itunes",
+ *          "sourceLink": "itunes.com"
  *       }
  *    ]
  */
@@ -53,13 +53,13 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  *     HTTP/1.1 201 OK
  *     [
  *       {
- *          "AUDURL": "https://9to5mac.files.wordpress.com/2018/06/9to5mac-happy-hour-06-08-2018.mp3",
- *          "DESC": "This is just a tribute too",
- *          "DRTN": "02:56:44",
- *          "LKD": 1337,
- *          "NAME": "The best Episode 1",
- *          "PID": "c2a145ce-c568-485d-91da-fdeaf2357927",
- *          "RLSTS": 1528639598
+ *          "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
+ *          "name": "The best Episode 2",
+ *          "description": "This is just a tribute too",
+ *          "releaseTimestamp": 1528639577,
+ *          "duration": "01:14:33",
+ *          "audioUrl": "https://9to5mac.files.wordpress.com/2018/06/9to5mac-happy-hour-06-08-2018.mp3",
+ *          "likedCount": 2448
  *       }
  *    ]
  */
