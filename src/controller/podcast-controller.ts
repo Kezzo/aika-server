@@ -6,7 +6,7 @@ import { PodcastError } from '../error-codes/podcast-error';
 import { PodcastQuery } from '../queries/podcast-query';
 
 export class PodcastController {
-  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string) {
+  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, oldestFollowTimestampString?: string) {
 
     if (!accountId) {
       return {
@@ -17,42 +17,69 @@ export class PodcastController {
         statusCode: httpStatus.BAD_REQUEST
       };
     }
-    // TODO: Add last pid from previous query for pagination.
-    const followedPodcastIds = await PodcastQuery.GetFollowedPodcastIds(logger, accountId);
+
+    let oldestFollowTimestamp;
+    if (oldestFollowTimestampString) {
+      const parsedInt = parseInt(oldestFollowTimestampString, 10);
+
+      if (parsedInt && !_.isNaN(parsedInt)) {
+        oldestFollowTimestamp = parsedInt;
+      }
+    }
+
+    const followedPodcasts = await PodcastQuery.GetFollowedPodcastEntries(
+      logger, accountId, oldestFollowTimestamp);
 
     // Account doesn't follow podcasts.
-    if (!followedPodcastIds || followedPodcastIds.length === 0) {
+    if (!followedPodcasts || followedPodcasts.length === 0) {
       return {
         msg: '',
         statusCode: httpStatus.OK
       };
     }
 
-    let followedPodcasts = await PodcastQuery.GetPodcasts(logger, followedPodcastIds);
+    const podcasts = await PodcastQuery.GetPodcasts(logger, _.pluck(followedPodcasts, 'PID'));
 
-    if (!followedPodcasts || followedPodcasts.length === 0) {
-      throw Error('Podcasts with the ids: ' + JSON.stringify(followedPodcastIds) + 'couldn\'t be retrieved!');
+    if (!podcasts || podcasts.length === 0) {
+      throw Error('Podcasts with the ids: ' + JSON.stringify(followedPodcasts) + 'couldn\'t be retrieved!');
     }
 
-    let responseMessage = '';
+    const followedPodcastMap = new Map();
+
+    for (const podcast of podcasts) {
+      followedPodcastMap.set(podcast.PID, podcast);
+    }
+
+    let responseMessage: any;
 
     if (followedPodcasts) {
-      followedPodcasts = _.map(followedPodcasts, (podcast: any) => {
+      responseMessage = _.map(followedPodcasts, (followedPodcast: any) => {
+
+        const podcastData = followedPodcastMap.get(followedPodcast.PID);
+
+        if (!podcastData) {
+          return null;
+        }
+
         return {
-          podcastId: podcast.PID,
-          name: podcast.NAME,
-          description: podcast.DESC,
-          author: podcast.ATHR,
-          authorUrl: podcast.ATHRURL,
-          genre: podcast.GENRE,
-          image: podcast.IMG,
-          rss: podcast.RSS,
-          source: podcast.SRC,
-          sourceLink: podcast.SRCL
+          podcastId: followedPodcast.PID,
+          name: podcastData.NAME,
+          description: podcastData.DESC,
+          author: podcastData.ATHR,
+          authorUrl: podcastData.ATHRURL,
+          genre: podcastData.GENRE,
+          image: podcastData.IMG,
+          source: podcastData.SRC,
+          sourceLink: podcastData.SRCL,
+          followTimestamp: followedPodcast.FLWTS,
+          lastPlayedTimestamp: followedPodcast.LUTS,
+          playedCount: followedPodcast.PLAYD
         };
       });
 
-      responseMessage = followedPodcasts;
+      responseMessage = _.compact(responseMessage);
+    } else {
+      responseMessage = '';
     }
 
     return {

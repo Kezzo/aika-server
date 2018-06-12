@@ -55,14 +55,19 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
-  public static async GetFollowedPodcastIds(logger: AppLogger, accoundId: string) {
+  public static async GetFollowedPodcastEntries(logger: AppLogger, accoundId: string, oldestFollowTimestamp?: number) {
 
     const params: any = {
       TableName: 'FLWDPODCASTS'
     };
 
-    // TODO: Add start from relevance sort key (greater than)
-    DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, null, false, 40);
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, null, false, 100);
+
+    if (oldestFollowTimestamp) {
+      // Since the followtimestamp is never changed (re-follow is new entry with new ts)
+      // this ensures secures non-duplicate pagination.
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', oldestFollowTimestamp, '>');
+    }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));
 
@@ -70,8 +75,6 @@ export class PodcastQuery {
       throw asyncResult.error;
     }
 
-    const podcastIds = _.pluck(asyncResult.result, 'PID');
-
-    return podcastIds;
+    return asyncResult.result;
   }
 }

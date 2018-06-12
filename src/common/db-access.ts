@@ -118,19 +118,35 @@ export class DatabaseAccess {
     });
   }
 
-  public static AddQueryParams(params: any, partitionKeyName: string,
-    queryValue: string, secondaryIndexName: string, keyOnly: boolean, limit: number = 1) {
+  public static AddQueryParams(params: QueryInput, partitionKeyName: string,
+    queryValue: any, secondaryIndexName: string, keyOnly: boolean,
+    limit?: number, descending?: boolean) {
     if (secondaryIndexName) {
       params.IndexName = secondaryIndexName;
     }
 
-    params.ExpressionAttributeNames = { '#key': partitionKeyName };
-    params.ExpressionAttributeValues = { ':value': queryValue };
-    params.KeyConditionExpression = '#key = :value';
-    params.Limit = limit;
+    params.ExpressionAttributeNames = { '#partitionKey': partitionKeyName };
+    params.ExpressionAttributeValues = { ':partitionValue': queryValue };
+    params.KeyConditionExpression = '#partitionKey = :partitionValue';
+
+    if (limit) {
+      params.Limit = limit;
+    }
+
+    if (descending) {
+      params.ScanIndexForward = !descending;
+    }
 
     if (keyOnly) {
       params.ProjectionExpression = partitionKeyName;
     }
+  }
+
+  public static AddQuerySecondaryKeyCondition(params: QueryInput,
+    sortKeyName: string, sortKeyConditionValue: any, condition: string) {
+
+    params.ExpressionAttributeNames['#sortKey'] = sortKeyName;
+    params.ExpressionAttributeValues[':sortValue'] = sortKeyConditionValue;
+    params.KeyConditionExpression += ' and #sortKey ' + condition + ' :sortValue';
   }
 }

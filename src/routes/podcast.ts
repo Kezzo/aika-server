@@ -33,8 +33,9 @@ import { Response } from '../common/response';
 router.get('/followed', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.get('x-account-id');
+  const oldestFollowTimestamp = req.param('oldestFollowTimestamp');
 
-  PodcastController.GetFollowedPodcasts(logger, accountId)
+  PodcastController.GetFollowedPodcasts(logger, accountId, oldestFollowTimestamp)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })
