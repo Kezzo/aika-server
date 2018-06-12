@@ -88,7 +88,8 @@ export class PodcastController {
     };
   }
 
-  public static async GetEpisodesFromPodcast(logger: AppLogger, podcastId: string) {
+  public static async GetEpisodesFromPodcast(logger: AppLogger, podcastId: string,
+    lastReleaseTimestampString?: string, oldestReleaseTimestampString?: string) {
     if (!podcastId) {
       return {
         msg: {
@@ -99,7 +100,25 @@ export class PodcastController {
       };
     }
 
-    let episodes = await PodcastQuery.GetEpisodes(logger, podcastId);
+    let lastReleaseTimestamp;
+    if (lastReleaseTimestampString) {
+      const parsedInt = parseInt(lastReleaseTimestampString, 10);
+
+      if (parsedInt && !_.isNaN(parsedInt)) {
+        lastReleaseTimestamp = parsedInt;
+      }
+    }
+
+    let oldestReleaseTimestamp;
+    if (oldestReleaseTimestampString) {
+      const parsedInt = parseInt(oldestReleaseTimestampString, 10);
+
+      if (parsedInt && !_.isNaN(parsedInt)) {
+        oldestReleaseTimestamp = parsedInt;
+      }
+    }
+
+    let episodes = await PodcastQuery.GetEpisodes(logger, podcastId, lastReleaseTimestamp, oldestReleaseTimestamp);
 
     let responseMessage = '';
 

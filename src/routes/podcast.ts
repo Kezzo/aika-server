@@ -52,6 +52,9 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
  * @apiGroup Podcast
  *
+ * @apiParam {Number} lastReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released after the timestamp. (to get latest episodes, not cached yet)
+ * @apiParam {Number} oldestReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released before the timestamp. (can be used for pagination)
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 201 OK
  *     [
@@ -69,8 +72,10 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 router.get('/episodes/:podcastId', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.param('podcastId');
+  const lastReleaseTimestamp = req.param('lastReleaseTimestamp');
+  const oldestReleaseTimestamp = req.param('oldestReleaseTimestamp');
 
-  PodcastController.GetEpisodesFromPodcast(logger, accountId)
+  PodcastController.GetEpisodesFromPodcast(logger, accountId, lastReleaseTimestamp, oldestReleaseTimestamp)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })

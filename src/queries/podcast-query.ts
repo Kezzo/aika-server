@@ -34,7 +34,8 @@ export class PodcastQuery {
     return asyncResult.result.PODCASTS;
   }
 
-  public static async GetEpisodes(logger: AppLogger, podcastId: string) {
+  public static async GetEpisodes(logger: AppLogger, podcastId: string,
+    lastReleaseTimestamp?: number, oldestReleaseTimestamp?: number) {
     if (!podcastId) {
       return null;
     }
@@ -43,8 +44,16 @@ export class PodcastQuery {
       TableName: 'EPISODES'
     };
 
-    // TODO: Add pagination support
-    DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, 30);
+    DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, 100, true);
+
+    // only one can be set at a time.
+    if (lastReleaseTimestamp) {
+      // Since the release timestamp is never changed this ensures secures non-duplicate pagination.
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'RLSTS', lastReleaseTimestamp, '>');
+    } else if (oldestReleaseTimestamp) {
+      // Since the release timestamp is never changed this ensures secures non-duplicate pagination.
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'RLSTS', oldestReleaseTimestamp, '<');
+    }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));
 
