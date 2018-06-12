@@ -55,7 +55,7 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
-  public static async GetFollowedPodcastEntries(logger: AppLogger, accoundId: string, oldestFollowTimestamp?: number) {
+  public static async GetFollowedPodcastEntries(logger: AppLogger, accoundId: string, lastFollowTimestamp?: number) {
 
     const params: any = {
       TableName: 'FLWDPODCASTS'
@@ -63,10 +63,10 @@ export class PodcastQuery {
 
     DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, null, false, 100);
 
-    if (oldestFollowTimestamp) {
+    if (lastFollowTimestamp) {
       // Since the followtimestamp is never changed (re-follow is new entry with new ts)
       // this ensures secures non-duplicate pagination.
-      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', oldestFollowTimestamp, '>');
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', lastFollowTimestamp, '>');
     }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));

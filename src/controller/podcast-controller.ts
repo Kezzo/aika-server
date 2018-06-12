@@ -6,7 +6,7 @@ import { PodcastError } from '../error-codes/podcast-error';
 import { PodcastQuery } from '../queries/podcast-query';
 
 export class PodcastController {
-  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, oldestFollowTimestampString?: string) {
+  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
 
     if (!accountId) {
       return {
@@ -18,17 +18,17 @@ export class PodcastController {
       };
     }
 
-    let oldestFollowTimestamp;
-    if (oldestFollowTimestampString) {
-      const parsedInt = parseInt(oldestFollowTimestampString, 10);
+    let lastFollowTimestamp;
+    if (lastFollowTimestampString) {
+      const parsedInt = parseInt(lastFollowTimestampString, 10);
 
       if (parsedInt && !_.isNaN(parsedInt)) {
-        oldestFollowTimestamp = parsedInt;
+        lastFollowTimestamp = parsedInt;
       }
     }
 
     const followedPodcasts = await PodcastQuery.GetFollowedPodcastEntries(
-      logger, accountId, oldestFollowTimestamp);
+      logger, accountId, lastFollowTimestamp);
 
     // Account doesn't follow podcasts.
     if (!followedPodcasts || followedPodcasts.length === 0) {

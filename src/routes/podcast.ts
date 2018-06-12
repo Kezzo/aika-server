@@ -13,6 +13,8 @@ import { Response } from '../common/response';
  * @apiDescription Gets the a set of the podcasts a user follows, sorted by relevance to the user.
  * @apiGroup Podcast
  *
+ * @apiParam {Number} lastFollowTimestamp Optional. UTC-Timestamp. Can be set to only get podcast the user started following after the time of the timestamp. (to get latest podcasts, not cached yet)
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 201 OK
  *     [
@@ -33,9 +35,9 @@ import { Response } from '../common/response';
 router.get('/followed', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.get('x-account-id');
-  const oldestFollowTimestamp = req.param('oldestFollowTimestamp');
+  const lastFollowTimestamp = req.param('lastFollowTimestamp');
 
-  PodcastController.GetFollowedPodcasts(logger, accountId, oldestFollowTimestamp)
+  PodcastController.GetFollowedPodcasts(logger, accountId, lastFollowTimestamp)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })
