@@ -15,7 +15,7 @@ import { Response } from '../common/response';
  *
  * @apiParamExample {json} Request-Example:
  *     {
- *       "mail" : "jon@tinkrinc.co",
+ *       "mail" : "test@domain.zxc",
  *       "password" : "password1234"
  *     }
  *
@@ -83,7 +83,7 @@ router.put('/create/twitter', function(req: express.Request, res: express.Respon
  *
  * @apiParamExample {json} Request-Example:
  *     {
- *       "mail" : "jon@tinkrinc.co",
+ *       "mail" : "test@domain.zxc",
  *       "password" : "password1234"
  *     }
  *

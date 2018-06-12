@@ -19,16 +19,18 @@ import { Response } from '../common/response';
  *     HTTP/1.1 201 OK
  *     [
  *       {
- *          "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
- *          "name": "The best Podcast in the World",
- *          "description": "But this is just a tribute",
- *          "author": "Jack Green",
- *          "authorUrl": "www.podcastauthor2.com",
- *          "genre": "SCIENCE",
- *          "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
- *          "rss": "www.podcastauthor2.com/rss",
- *          "source": "itunes",
- *          "sourceLink": "itunes.com"
+ *         "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
+ *         "name": "The best Podcast in the World",
+ *         "description": "But this is just a tribute",
+ *         "author": "Jack Green",
+ *         "authorUrl": "www.podcastauthor2.com",
+ *         "genre": "SCIENCE",
+ *         "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
+ *         "source": "itunes",
+ *         "sourceLink": "itunes.com",
+ *         "followTimestamp": 15283420140000,
+ *         "lastPlayedTimestamp": 1528642014,
+ *         "playedCount": 10
  *       }
  *    ]
  */
