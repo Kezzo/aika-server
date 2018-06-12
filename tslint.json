@@ -14,6 +14,7 @@
     "only-arrow-functions": false,
     "trailing-comma":false,
     "max-classes-per-file":false,
-    "no-namespace":false
+    "no-namespace":false,
+    "max-line-length": false
     }
 }
