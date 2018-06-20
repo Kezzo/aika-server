@@ -37,6 +37,42 @@ export class CacheAccess {
     });
   }
 
+  public static async SetIfNotExistBatch(keyValuePairs: Array<{ key: string, value: string }>, timeToLife?: number) {
+    return new Promise((resolve, reject) => {
+
+      const commandsToExecture = new Array();
+
+      for (const keyValuePair of keyValuePairs) {
+
+        const commands = ['SET', keyValuePair.key, keyValuePair.value, 'NX'];
+
+        if (timeToLife) {
+          commands.push('EX');
+          commands.push(timeToLife.toString());
+        }
+
+        commandsToExecture.push(commands);
+      }
+
+      this.redisClient.BATCH(commandsToExecture).exec((error, results) => {
+        if (error) {
+          return reject (error);
+        }
+
+        const addedKeys = new Set();
+        for (let i = 0; i < keyValuePairs.length; i++) {
+          const keyValuePair = keyValuePairs[i];
+
+          if (i < results.length && results[i] === 'OK') {
+            addedKeys.add(keyValuePair.key);
+          }
+        }
+
+        resolve(addedKeys);
+      });
+    });
+  }
+
   public static async Delete(...keys: string[]) {
     return new Promise((resolve, reject) => {
       this.redisClient.DEL(keys, (error, success) => {

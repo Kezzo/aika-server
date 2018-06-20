@@ -1,9 +1,9 @@
 import _ = require('underscore');
+import moment = require('moment');
 
 import { DatabaseAccess } from '../common/db-access';
 import { AppLogger } from '../logging/app-logger';
-import to from '../utility/to';
-import { AsyncResult } from '../utility/to';
+import to, { AsyncResult } from '../utility/to';
 
 export class PodcastQuery {
   public static async GetPodcasts(logger: AppLogger, podcastIds: string[]) {
@@ -32,6 +32,38 @@ export class PodcastQuery {
     }
 
     return asyncResult.result.PODCASTS;
+  }
+
+  public static async GetPodcastsBySourceId(logger: AppLogger, podcastSourceIds: string[]) {
+    if (!podcastSourceIds) {
+      return null;
+    }
+
+    const queryPromises = new Array();
+
+    for (const podcastSourceId of podcastSourceIds) {
+      const params: any = {
+        TableName: 'PODCASTS'
+      };
+
+      DatabaseAccess.AddQueryParams(params, 'SRCID', podcastSourceId.toString(), 'SRCID', false, 1);
+      queryPromises.push(to(DatabaseAccess.Query(logger, params)));
+    }
+
+    const asyncResults = await Promise.all<AsyncResult>(queryPromises);
+
+    for (const asyncResult of asyncResults) {
+      if (asyncResult.error) {
+        throw asyncResult.error;
+      }
+    }
+
+    let results = _.pluck(asyncResults, 'result');
+    results = _.filter(results, (entry) => {
+      return entry.length > 0;
+    });
+
+    return results;
   }
 
   public static async GetEpisodes(logger: AppLogger, podcastId: string,
@@ -64,13 +96,13 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
-  public static async GetFollowedPodcastEntries(logger: AppLogger, accoundId: string, lastFollowTimestamp?: number) {
+  public static async GetFollowedPodcastEntries(logger: AppLogger, accountId: string, lastFollowTimestamp?: number) {
 
     const params: any = {
       TableName: 'FLWDPODCASTS'
     };
 
-    DatabaseAccess.AddQueryParams(params, 'ACCID', accoundId, null, false, 100);
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, null, false, 100);
 
     if (lastFollowTimestamp) {
       // Since the followtimestamp is never changed (re-follow is new entry with new ts)
@@ -85,5 +117,44 @@ export class PodcastQuery {
     }
 
     return asyncResult.result;
+  }
+
+  public static async CreatePodcastFollowEntries(logger: AppLogger, accountId: string, podcastIds: string[]) {
+    const isArray = podcastIds && _.isArray(podcastIds);
+
+    if (isArray) {
+      podcastIds = _.compact(podcastIds);
+    }
+
+    if (!isArray || _.isEmpty(podcastIds)) {
+      throw new Error('Given podcastIds are missing or empty!');
+    }
+
+    const itemsToCreate = new Array();
+    const utcTimestamp = moment.utc().format('X');
+
+    for (const podcastId of podcastIds) {
+      itemsToCreate.push({
+        PutRequest: {
+          ACCID: accountId,
+          FLWTS: utcTimestamp,
+          PID: podcastId
+        }
+      });
+    }
+
+    const putParams = {
+      RequestItems: {
+        ACCOUNTS: itemsToCreate
+      }
+    };
+
+    const asyncResult = await to(DatabaseAccess.WriteMany(logger, putParams));
+
+    if (asyncResult.error) {
+      throw asyncResult.error;
+    }
+
+    return _.pluck(itemsToCreate, 'PutRequest');
   }
 }

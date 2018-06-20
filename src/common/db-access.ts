@@ -3,7 +3,7 @@ import _ = require('underscore');
 
 import { AppLogger } from '../logging/app-logger';
 import { BatchGetItemInput, GetItemInput, PutItemInput,
-  QueryInput, UpdateItemInput, DeleteItemInput } from 'aws-sdk/clients/dynamodb';
+  QueryInput, UpdateItemInput, DeleteItemInput, BatchWriteItemInput } from 'aws-sdk/clients/dynamodb';
 
 export class DatabaseAccess {
   private static dynamodb: AWS.DynamoDB.DocumentClient = null;
@@ -33,6 +33,27 @@ export class DatabaseAccess {
 
         logger.Info('DB Put data:' + JSON.stringify(data));
         return resolve(data.Attributes);
+      });
+    });
+  }
+
+  public static async WriteMany(logger: AppLogger, params: BatchWriteItemInput) {
+    logger.Info('DB Put: ' + JSON.stringify(params));
+
+    const dynamodb = this.dynamodb;
+    return new Promise(function(resolve, reject) {
+      dynamodb.batchWrite(params, function(error, data) {
+        if (!_.isNull(error)) {
+          logger.Warn('Error putting data to DB:' + error);
+          return reject(error);
+        }
+
+        if (!_.isEmpty(data.UnprocessedItems)) {
+          logger.Warn('Unprocessed items received after WriteMany: ' + JSON.stringify(data.UnprocessedItems));
+        }
+
+        logger.Info('DB Put data:' + JSON.stringify(data));
+        return resolve(true);
       });
     });
   }

@@ -49,7 +49,7 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 });
 
 /**
- * @api {get} /podcast/episodes /episodes
+ * @api {get} /podcast/episodes/:podcastId /episodes
  * @apiName /podcast/episodes
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
  * @apiGroup Podcast
@@ -78,6 +78,49 @@ router.get('/episodes/:podcastId', function(req: express.Request, res: express.R
   const oldestReleaseTimestamp = req.param('oldestReleaseTimestamp');
 
   PodcastController.GetEpisodesFromPodcast(logger, accountId, lastReleaseTimestamp, oldestReleaseTimestamp)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {post} /podcast/import /import
+ * @apiName /podcast/import
+ * @apiDescription Initiates the import process for the given podcast source id's.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "podcastSource": "itunes",
+ *       "podcastSourceIds": [
+ *         1054815950,
+ *         793067475,
+ *   	     360084272
+ *       ]
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 201 OK
+ *     {
+ *       {
+ *         "existingPodcasts": [],
+ *         "podcastImports": [
+ *           "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
+ *           "ca359a98-210d-41dd-839e-2b0a20f034a9",
+ *           "af4de685-49ca-4555-9658-6620a3ba664f"
+ *         ]
+ *       }
+ *     }
+ */
+router.post('/import', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.get('x-account-id');
+  const podcastSourceIds = req.body.podcastSourceIds;
+
+  PodcastController.StartPodcastImport(logger, accountId, podcastSourceIds)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })
