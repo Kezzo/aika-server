@@ -25,6 +25,24 @@ export class CacheAccess {
     });
   }
 
+  public static async GetMany(keys: string[]) {
+    return new Promise((resolve, reject) => {
+      const commandsToExecture = new Array();
+
+      for (const key of keys) {
+        commandsToExecture.push(['GET', key]);
+      }
+
+      this.redisClient.BATCH(commandsToExecture).exec((error, results) => {
+        if (error) {
+          return reject (error);
+        }
+
+        resolve(results);
+      });
+    });
+  }
+
   public static async Set(key: string, value: string, timeToLife?: number) {
     return new Promise((resolve, reject) => {
       this.redisClient.SET(key, value, 'EX', timeToLife, (error, success) => {

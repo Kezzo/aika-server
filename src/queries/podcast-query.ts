@@ -58,10 +58,10 @@ export class PodcastQuery {
       }
     }
 
-    let results = _.pluck(asyncResults, 'result');
-    results = _.filter(results, (entry) => {
-      return entry.length > 0;
+    let results = _.map(asyncResults, (result) => {
+      return result.result[0];
     });
+    results = _.compact(results);
 
     return results;
   }
@@ -119,7 +119,7 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
-  public static async CreatePodcastFollowEntries(logger: AppLogger, accountId: string, podcastIds: string[]) {
+  public static async CreatePodcastFollowEntries(logger: AppLogger, accountId: string, podcastIds: string[], forcePodcastIds?: Set<string>) {
     const isArray = podcastIds && _.isArray(podcastIds);
 
     if (isArray) {
@@ -130,31 +130,64 @@ export class PodcastQuery {
       throw new Error('Given podcastIds are missing or empty!');
     }
 
-    const itemsToCreate = new Array();
-    const utcTimestamp = moment.utc().format('X');
+    const queryPromises = new Array();
 
     for (const podcastId of podcastIds) {
-      itemsToCreate.push({
-        PutRequest: {
-          ACCID: accountId,
-          FLWTS: utcTimestamp,
-          PID: podcastId
-        }
-      });
-    }
+      if (!forcePodcastIds || !forcePodcastIds.has(podcastId)){
+        const queryParams: any = {
+          TableName: 'FLWDPODCASTS'
+        };
 
-    const putParams = {
-      RequestItems: {
-        ACCOUNTS: itemsToCreate
+        DatabaseAccess.AddQueryParams(queryParams, 'ACCID', accountId, 'ACCID-PID', false, 1);
+        DatabaseAccess.AddQuerySecondaryKeyCondition(queryParams, 'PID', podcastId, '=');
+        queryPromises.push(to(DatabaseAccess.Query(logger, queryParams)));
       }
-    };
-
-    const asyncResult = await to(DatabaseAccess.WriteMany(logger, putParams));
-
-    if (asyncResult.error) {
-      throw asyncResult.error;
     }
 
-    return _.pluck(itemsToCreate, 'PutRequest');
+    const queryResults = await Promise.all(queryPromises);
+
+    const existingPodcastFollowEntries = new Array();
+    const existingPodcastIdFollowEntries = new Set();
+    for (const queryResult of queryResults) {
+      if (queryResult.error) {
+        throw queryResult.error;
+      } else if (queryResult.result.length > 0) {
+        existingPodcastFollowEntries.push(queryResult.result[0]);
+        existingPodcastIdFollowEntries.add(queryResult.result[0].PID);
+      }
+    }
+
+    const itemsToCreate = new Array();
+    const utcTimestamp = parseInt(moment.utc().format('X'), 10);
+
+    for (const podcastId of podcastIds) {
+      if (!existingPodcastIdFollowEntries.has(podcastId)) {
+        itemsToCreate.push({
+          PutRequest: {
+            Item: {
+              ACCID: accountId,
+              FLWTS: utcTimestamp,
+              PID: podcastId
+            }
+          }
+        });
+      }
+    }
+
+    if (itemsToCreate.length > 0) {
+      const putParams = {
+        RequestItems: {
+          FLWDPODCASTS: itemsToCreate
+        }
+      };
+
+      const writeAsyncResult = await to(DatabaseAccess.WriteMany(logger, putParams));
+
+      if (writeAsyncResult.error) {
+        throw writeAsyncResult.error;
+      }
+    }
+
+    return existingPodcastFollowEntries.concat(_.pluck(itemsToCreate, 'PutRequest'));
   }
 }

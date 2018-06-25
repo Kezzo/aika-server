@@ -152,7 +152,7 @@ export class PodcastController {
     let createdPodcastFollowEntries = new Array();
 
     if (existingPodcasts.length > 0) {
-      createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, existingPodcasts);
+      createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, _.pluck(existingPodcasts, 'PID'));
     }
 
     if (existingPodcasts.length === podcastSourceIds.length) {
@@ -171,7 +171,7 @@ export class PodcastController {
       const podcastSourceId = podcastSourceIds[i];
 
       // remove podcast source id's to import if they already exist in db.
-      if (existingSourceIds.has(podcastSourceId)) {
+      if (existingSourceIds.has(podcastSourceId.toString())) {
         podcastSourceIds.splice(i, 1);
       }
     }
@@ -233,7 +233,7 @@ export class PodcastController {
     const podcastCacheSetResult = await to(CacheAccess.SetIfNotExistBatch(_.map(podcastImportDataList, (entry) => {
       return {
         key: 'IMPORT-' + entry.sourceId,
-        value: ''
+        value: entry.podcastId
       };
     }), 900));
 
@@ -241,9 +241,31 @@ export class PodcastController {
       throw podcastCacheSetResult.error;
     }
 
-    podcastImportDataList = _.filter(podcastImportDataList, (entry) => {
-      return podcastCacheSetResult.result.has('IMPORT-' + entry.sourceId);
-    });
+    const importInProgressSourceIdEntries = new Array();
+    const importRequiredEntries = new Array();
+    for (const podcastImportEntry of podcastImportDataList) {
+      if (podcastCacheSetResult.result.has('IMPORT-' + podcastImportEntry.sourceId)) {
+        importRequiredEntries.push(podcastImportEntry);
+      } else {
+        importInProgressSourceIdEntries.push('IMPORT-' + podcastImportEntry.sourceId);
+      }
+    }
+
+    podcastImportDataList = importRequiredEntries;
+
+    const podcastIdsToFollow = new Array();
+
+    if (importInProgressSourceIdEntries.length > 0) {
+      const inProgressCacheAsyncResult = await to(CacheAccess.GetMany(importInProgressSourceIdEntries));
+
+      if (inProgressCacheAsyncResult.error) {
+        throw(inProgressCacheAsyncResult.error);
+      }
+
+      for (const inProgressPodcastId of inProgressCacheAsyncResult.result) {
+        podcastIdsToFollow.push(inProgressPodcastId);
+      }
+    }
 
     const importStartPromises = new Array<Promise<AsyncResult>>();
 
@@ -256,13 +278,21 @@ export class PodcastController {
     for (const importStartedResult of importStartedResults) {
       if (importStartedResult.error) {
         logger.Error(importStartedResult.error);
+      } else {
+        // To only follow podcasts where the import process was started successfully
+        podcastIdsToFollow.push(importStartedResult.result.podcastId);
       }
+    }
+
+    if (podcastIdsToFollow.length > 0) {
+      const podcastIdsToForce = new Set(_.pluck(podcastImportDataList, 'podcastId'));
+      await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, podcastIdsToFollow, podcastIdsToForce);
     }
 
     return {
       msg: {
         existingPodcasts: PodcastController.GetPodcastResponseMessage(existingPodcasts, createdPodcastFollowEntries),
-        podcastImports: _.pluck(podcastImportDataList, 'podcastId')
+        podcastImports: podcastIdsToFollow
       },
       statusCode: httpStatus.ACCEPTED
     };
