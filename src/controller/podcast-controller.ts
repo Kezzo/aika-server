@@ -230,6 +230,8 @@ export class PodcastController {
       });
     }
 
+    logger.Info('Received podcast import data from iTunes: ' + JSON.stringify(podcastImportDataList));
+
     const podcastCacheSetResult = await to(CacheAccess.SetIfNotExistBatch(_.map(podcastImportDataList, (entry) => {
       return {
         key: 'IMPORT-' + entry.sourceId,
@@ -250,6 +252,9 @@ export class PodcastController {
         importInProgressSourceIdEntries.push('IMPORT-' + podcastImportEntry.sourceId);
       }
     }
+
+    logger.Info(importInProgressSourceIdEntries.length + ' podcast import are in progress. ' + 
+      importRequiredEntries.length + ' have to be imported');
 
     podcastImportDataList = importRequiredEntries;
 
