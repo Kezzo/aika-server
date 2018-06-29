@@ -148,14 +148,13 @@ export class PodcastController {
     }
 
     const existingPodcasts = await PodcastQuery.GetPodcastsBySourceId(logger, podcastSourceIds);
-
     let createdPodcastFollowEntries = new Array();
 
-    if (existingPodcasts.length > 0) {
-      createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, _.pluck(existingPodcasts, 'PID'));
-    }
-
     if (existingPodcasts.length === podcastSourceIds.length) {
+      if (existingPodcasts.length > 0) {
+        createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, _.pluck(existingPodcasts, 'PID'));
+      }
+
       return {
         msg: {
           existingPodcasts: PodcastController.GetPodcastResponseMessage(existingPodcasts, createdPodcastFollowEntries),
@@ -253,7 +252,7 @@ export class PodcastController {
       }
     }
 
-    logger.Info(importInProgressSourceIdEntries.length + ' podcast import are in progress. ' + 
+    logger.Info(importInProgressSourceIdEntries.length + ' podcast import are in progress. ' +
       importRequiredEntries.length + ' have to be imported');
 
     podcastImportDataList = importRequiredEntries;
@@ -289,9 +288,10 @@ export class PodcastController {
       }
     }
 
-    if (podcastIdsToFollow.length > 0) {
+    if (podcastIdsToFollow.length > 0 || existingPodcasts.length > 0) {
       const podcastIdsToForce = new Set(_.pluck(podcastImportDataList, 'podcastId'));
-      await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, podcastIdsToFollow, podcastIdsToForce);
+      createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId,
+        podcastIdsToFollow.concat(_.pluck(existingPodcasts, 'PID')), podcastIdsToForce);
     }
 
     return {
@@ -304,35 +304,34 @@ export class PodcastController {
 
   }
 
-  private static GetPodcastResponseMessage(podcasts: any[], followedPodcasts: any[]) {
-    const followedPodcastMap = new Map();
+  private static GetPodcastResponseMessage(podcasts: any[], podcastFollowEntries: any[]) {
+    const podcastFollowEntryMap = new Map();
 
-    for (const podcast of podcasts) {
-      followedPodcastMap.set(podcast.PID, podcast);
+    for (const podcastFollowEntry of podcastFollowEntries) {
+      podcastFollowEntryMap.set(podcastFollowEntry.PID, podcastFollowEntry);
     }
 
-    const responseMessage = _.map(followedPodcasts, (followedPodcast: any) => {
+    const responseMessage = _.map(podcasts, (podcast: any) => {
+      const podcastFollowData = podcastFollowEntryMap.get(podcast.PID);
 
-      const podcastData = followedPodcastMap.get(followedPodcast.PID);
-
-      if (!podcastData) {
+      if (!podcastFollowData) {
         return null;
       }
 
       return {
-        podcastId: followedPodcast.PID,
-        name: podcastData.NAME,
-        description: podcastData.DESC,
-        author: podcastData.ATHR,
-        authorUrl: podcastData.ATHRURL,
-        genre: podcastData.GENRE,
-        image: podcastData.IMG,
-        source: podcastData.SRC,
-        sourceId: podcastData.SRCID,
-        sourceLink: podcastData.SRCL,
-        followTimestamp: followedPodcast.FLWTS,
-        lastPlayedTimestamp: followedPodcast.LUTS,
-        playedCount: followedPodcast.PLAYD
+        podcastId: podcast.PID,
+        name: podcast.NAME,
+        description: podcast.DESC,
+        author: podcast.ATHR,
+        authorUrl: podcast.ATHRURL,
+        genre: podcast.GENRE,
+        image: podcast.IMG,
+        source: podcast.SRC,
+        sourceId: podcast.SRCID,
+        sourceLink: podcast.SRCL,
+        followTimestamp: podcastFollowData.FLWTS,
+        lastPlayedTimestamp: podcastFollowData.LUTS,
+        playedCount: podcastFollowData.PLAYD
       };
     });
 

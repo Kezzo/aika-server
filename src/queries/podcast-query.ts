@@ -133,7 +133,7 @@ export class PodcastQuery {
     const queryPromises = new Array();
 
     for (const podcastId of podcastIds) {
-      if (!forcePodcastIds || !forcePodcastIds.has(podcastId)){
+      if (!forcePodcastIds || !forcePodcastIds.has(podcastId)) {
         const queryParams: any = {
           TableName: 'FLWDPODCASTS'
         };
@@ -158,15 +158,20 @@ export class PodcastQuery {
     }
 
     const itemsToCreate = new Array();
-    const utcTimestamp = parseInt(moment.utc().format('X'), 10);
+    const utcTimestamp = parseInt(moment.utc().format('x'), 10);
 
-    for (const podcastId of podcastIds) {
+    for (let i = 0; i < podcastIds.length; i++) {
+      const podcastId = podcastIds[i];
+
+      // this is done to avoid follow timestamp sort key collision.
+      const followTimestamp = utcTimestamp * 100 + i;
+
       if (!existingPodcastIdFollowEntries.has(podcastId)) {
         itemsToCreate.push({
           PutRequest: {
             Item: {
               ACCID: accountId,
-              FLWTS: utcTimestamp,
+              FLWTS: followTimestamp,
               PID: podcastId
             }
           }
@@ -188,6 +193,8 @@ export class PodcastQuery {
       }
     }
 
-    return existingPodcastFollowEntries.concat(_.pluck(itemsToCreate, 'PutRequest'));
+    return existingPodcastFollowEntries.concat(_.map(itemsToCreate, ((entry) => {
+      return entry.PutRequest.Item;
+    })));
   }
 }
