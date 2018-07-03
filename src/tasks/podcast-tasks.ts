@@ -16,4 +16,10 @@ export class PodcastTasks {
       return resolve(payload);
     });
   }
+
+  public static async InvokeEpisodeImport(logger: AppLogger, podcastId: string) {
+    logger.Info('Invoking episode import task with podcastId: ' + podcastId);
+
+    return LambdaAccess.InvokeLambda('aika-dev-episode-import', podcastId);
+  }
 }

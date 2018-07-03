@@ -103,7 +103,7 @@ router.get('/episodes/:podcastId', function(req: express.Request, res: express.R
  *     }
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 OK
+ *     HTTP/1.1 202 ACCEPTED
  *     {
  *       {
  *         "existingPodcasts": [],
@@ -121,6 +121,44 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
   const podcastSourceIds = req.body.podcastSourceIds;
 
   PodcastController.StartPodcastImport(logger, accountId, podcastSourceIds)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {post} /podcast/import/episodes /import/episodes
+ * @apiName /podcast/import/episodes
+ * @apiDescription Initiates the import process for the given episode database entries recieved from a lambda podcast import task.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     [
+ *       {
+ *         AUDURL:"https://rss.art19.com/episodes/c6e40d3e-4046-4aed-8e28-36d8979ee983.mp3"
+ *         DESC:"H4sIAAAAAAAACk1Ry47UQAy8I/EP5j4gJFYcODEIdlktixDsBW6ejpOY7baHfhDC1/AtfBnVGa0G5dBdrnKVnb42qrMWkqMWH2RHi1ASqcQxUtFf5CN5y3TQ4Fwqo/ij8dDLwWcvtVB1GrSEVnCdhfZWZ7eVbsRMhpWyVM2SxOBp5s3CBnbEBWFIwRn0p0atKxSwhkum8HTxPJRnf//czWK7zfoU/b0NkxRSKwqvLHRsh6iB+OjRJwW1uYyj5IL04Al5A1d1KzQ6rN2xRm3jSIuDI4bJ4GrT1pn4HlcEP3708F2iKzlUY/a0jfJ+LVWyMm3/YAffGH3pVCI3ulu0gn9ytniX1ejzyljlNawMEVN0OJwlH7/Sl77hqw7eRNZM14lN0XHoSDvo3D6upTDd4kEwjxsHh+ZUPRUvLrrum+I1L1tqg88Q/AY8p33Y/5d2o5mN3opH6MqstS9634udvZUJ7BVrlLWP3+G0oc5eZQ5CnzhnBrmhDbx4+fwfme1z0F4CAAA="
+ *         DRTN:4501
+ *         LKD:0
+ *         NAME:"Courts, Civility, and other C words"
+ *        PID:"bb4db974-b94a-42c6-844b-6ca7d3da1de3"
+ *        RLSTS:1530220183
+ *       }
+ *     ]
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 201 CREATED
+ *     {}
+ */
+router.post('/import/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const podcastId = req.get('x-podcast-id');
+  const taskToken = req.get('x-task-token');
+  const episodeDatabaseEntries = req.body;
+
+  PodcastController.StartEpisodeImport(logger, podcastId, taskToken, episodeDatabaseEntries)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })

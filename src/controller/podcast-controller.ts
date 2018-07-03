@@ -304,6 +304,80 @@ export class PodcastController {
 
   }
 
+  public static async StartEpisodeImport(logger: AppLogger, podcastId: string,
+    taskToken: string, episodeDatabaseEntries: any[]) {
+
+    if (!podcastId || !taskToken || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
+      return {
+        msg: {
+          error: 'The episode import data is invalid!',
+          errorCode: PodcastError.EPISODE_IMPORT_DATA_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const importTokenKey = 'EIMPORTTOKEN-' + podcastId;
+    const getImportTokenAsyncResult = await to(CacheAccess.Get(importTokenKey));
+
+    // token doesn't exists.
+    if (getImportTokenAsyncResult.error || !getImportTokenAsyncResult.result ||
+      taskToken !== getImportTokenAsyncResult.result) {
+      return {
+        msg: {
+          error: 'The episode import token is invalid!',
+          errorCode: PodcastError.EPISODE_IMPORT_TOKEN_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const removeImportTokenAsyncResult = await to(CacheAccess.Delete(importTokenKey));
+
+    if (removeImportTokenAsyncResult.error) {
+      throw removeImportTokenAsyncResult.error;
+    }
+
+    // token was already consumed.
+    if (removeImportTokenAsyncResult.result === 0) {
+      return {
+        msg: {
+          error: 'The episode import token is invalid!',
+          errorCode: PodcastError.EPISODE_IMPORT_TOKEN_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const sortedSetItemsToAdd = [];
+    for (const episodeDatabaseEntry of episodeDatabaseEntries) {
+      sortedSetItemsToAdd.push(episodeDatabaseEntry.RLSTS);
+      sortedSetItemsToAdd.push(JSON.stringify(episodeDatabaseEntry));
+    }
+
+    const addEpsiodeEntriesToCacheAsyncResult = await to(CacheAccess.AddItemsToSortedSet(
+      'EPISODES-' + podcastId, sortedSetItemsToAdd));
+
+    if (addEpsiodeEntriesToCacheAsyncResult.error) {
+      throw addEpsiodeEntriesToCacheAsyncResult.error;
+    }
+
+    if (addEpsiodeEntriesToCacheAsyncResult.result !== episodeDatabaseEntries.length) {
+      logger.Warn('Only ' + addEpsiodeEntriesToCacheAsyncResult.result + ' from existing ' + episodeDatabaseEntries.length + ' episodes were added to the cache');
+    }
+
+    const invokeLambdaAsyncResult = await to(PodcastTasks.InvokeEpisodeImport(logger, JSON.stringify({ podcastId })));
+
+    if (invokeLambdaAsyncResult.error) {
+      throw invokeLambdaAsyncResult.error;
+    }
+
+    return {
+      msg: '',
+      statusCode: httpStatus.OK
+    };
+  }
+
   private static GetPodcastResponseMessage(podcasts: any[], podcastFollowEntries: any[]) {
     const podcastFollowEntryMap = new Map();
 

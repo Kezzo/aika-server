@@ -91,6 +91,18 @@ export class CacheAccess {
     });
   }
 
+  public static async AddItemsToSortedSet(key: string, itemsToAdd: string[]) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.ZADD(key, itemsToAdd, (error, success) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(success);
+      });
+    });
+  }
+
   public static async Delete(...keys: string[]) {
     return new Promise((resolve, reject) => {
       this.redisClient.DEL(keys, (error, success) => {
