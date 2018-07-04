@@ -148,7 +148,7 @@ export class PodcastController {
     }
 
     const existingPodcasts = await PodcastQuery.GetPodcastsBySourceId(logger, podcastSourceIds);
-    let createdPodcastFollowEntries = new Array();
+    let createdPodcastFollowEntries = [];
 
     if (existingPodcasts.length === podcastSourceIds.length) {
       if (existingPodcasts.length > 0) {
@@ -204,7 +204,7 @@ export class PodcastController {
       throw new Error('Podcast not found in iTunes: ' + unzipResult.error);
     }
 
-    let podcastImportDataList = new Array();
+    let podcastImportDataList = [];
 
     for (const podcastSourceId of podcastSourceIds) {
       const iTunesPodcastEntry = _.find(unzipResult.results, (entry: any) => {
@@ -242,8 +242,8 @@ export class PodcastController {
       throw podcastCacheSetResult.error;
     }
 
-    const importInProgressSourceIdEntries = new Array();
-    const importRequiredEntries = new Array();
+    const importInProgressSourceIdEntries = [];
+    const importRequiredEntries = [];
     for (const podcastImportEntry of podcastImportDataList) {
       if (podcastCacheSetResult.result.has('IMPORT-' + podcastImportEntry.sourceId)) {
         importRequiredEntries.push(podcastImportEntry);
@@ -257,7 +257,7 @@ export class PodcastController {
 
     podcastImportDataList = importRequiredEntries;
 
-    const podcastIdsToFollow = new Array();
+    const podcastIdsToFollow = [];
 
     if (importInProgressSourceIdEntries.length > 0) {
       const inProgressCacheAsyncResult = await to(CacheAccess.GetMany(importInProgressSourceIdEntries));

@@ -11,7 +11,7 @@ export class PodcastQuery {
       return null;
     }
 
-    const keys = new Array();
+    const keys = [];
 
     for (const podcastId of podcastIds) {
       keys.push({ PID: podcastId });
@@ -39,7 +39,7 @@ export class PodcastQuery {
       return null;
     }
 
-    const queryPromises = new Array();
+    const queryPromises = [];
 
     for (const podcastSourceId of podcastSourceIds) {
       const params: any = {
@@ -130,7 +130,7 @@ export class PodcastQuery {
       throw new Error('Given podcastIds are missing or empty!');
     }
 
-    const queryPromises = new Array();
+    const queryPromises = [];
 
     for (const podcastId of podcastIds) {
       if (!forcePodcastIds || !forcePodcastIds.has(podcastId)) {
@@ -146,7 +146,7 @@ export class PodcastQuery {
 
     const queryResults = await Promise.all(queryPromises);
 
-    const existingPodcastFollowEntries = new Array();
+    const existingPodcastFollowEntries = [];
     const existingPodcastIdFollowEntries = new Set();
     for (const queryResult of queryResults) {
       if (queryResult.error) {
@@ -157,7 +157,7 @@ export class PodcastQuery {
       }
     }
 
-    const itemsToCreate = new Array();
+    const itemsToCreate = [];
     const utcTimestamp = parseInt(moment.utc().format('x'), 10);
 
     for (let i = 0; i < podcastIds.length; i++) {

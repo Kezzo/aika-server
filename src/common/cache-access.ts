@@ -27,7 +27,7 @@ export class CacheAccess {
 
   public static async GetMany(keys: string[]) {
     return new Promise((resolve, reject) => {
-      const commandsToExecture = new Array();
+      const commandsToExecture = [];
 
       for (const key of keys) {
         commandsToExecture.push(['GET', key]);
@@ -58,7 +58,7 @@ export class CacheAccess {
   public static async SetIfNotExistBatch(keyValuePairs: Array<{ key: string, value: string }>, timeToLife?: number) {
     return new Promise((resolve, reject) => {
 
-      const commandsToExecture = new Array();
+      const commandsToExecture = [];
 
       for (const keyValuePair of keyValuePairs) {
 
