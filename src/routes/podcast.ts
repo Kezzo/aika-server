@@ -89,12 +89,11 @@ router.get('/episodes/:podcastId', function(req: express.Request, res: express.R
 /**
  * @api {post} /podcast/import /import
  * @apiName /podcast/import
- * @apiDescription Initiates the import process for the given podcast source id's.
+ * @apiDescription Initiates the import process for the given podcast source id's for a given user.
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
  *     {
- *       "podcastSource": "itunes",
  *       "podcastSourceIds": [
  *         1054815950,
  *         793067475,
@@ -120,7 +119,49 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
   const accountId = req.get('x-account-id');
   const podcastSourceIds = req.body.podcastSourceIds;
 
-  PodcastController.StartPodcastImport(logger, accountId, podcastSourceIds)
+  PodcastController.StartPodcastImportForAccount(logger, accountId, podcastSourceIds)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {post} /podcast/import/raw /import/raw
+ * @apiName /podcast/import/raw
+ * @apiDescription Initiates the raw import process for the given podcast source id's without a required account id.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     {
+ *       "podcastSourceIds": [
+ *         1054815950,
+ *         793067475,
+ *   	     360084272
+ *       ]
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 202 ACCEPTED
+ *     {
+ *       {
+ *         "existingPodcasts": [],
+ *         "podcastImports": [
+ *           "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
+ *           "ca359a98-210d-41dd-839e-2b0a20f034a9",
+ *           "af4de685-49ca-4555-9658-6620a3ba664f"
+ *         ]
+ *       }
+ *     }
+ */
+router.post('/import/raw', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const importSecret = req.get('x-import-secret');
+  const podcastSourceIds = req.body.podcastSourceIds;
+
+  PodcastController.StartRawPodcastImport(logger, importSecret, podcastSourceIds)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })

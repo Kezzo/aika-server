@@ -10,7 +10,7 @@ export class PodcastTasks {
       const lambdaStartAsyncResult = await to(LambdaAccess.InvokeLambda('aika-dev-podcast-import', JSON.stringify(payload)));
 
       if (lambdaStartAsyncResult.error) {
-        reject(lambdaStartAsyncResult.error);
+        return reject(lambdaStartAsyncResult.error);
       }
 
       return resolve(payload);

@@ -17,7 +17,8 @@ export class OneTimeTokenService {
     '/account/password/reset',
     '/account/password/change',
     '/platform/twitter/logintoken',
-    '/podcast/import/episodes'
+    '/podcast/import/episodes',
+    '/podcast/import/raw'
   ]);
 
   public static async CheckOTT(req: express.Request, res: express.Response, next: NextFunction) {

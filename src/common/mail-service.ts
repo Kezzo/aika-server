@@ -1,5 +1,6 @@
 import sendGridMailer = require('@sendgrid/mail');
 import { SecretsProvider } from './secrets-provider';
+import GetEnvironmentBasedUrl from '../utility/environment';
 
 export class MailService {
   public static Init() {
@@ -7,7 +8,7 @@ export class MailService {
   }
 
   public static async SendVerificationMail(receiverMail: string, accountId: string) {
-    const verificationLink = this.GetEnvironmentBasedUrl() + '/account/verify?accountId=' + accountId;
+    const verificationLink = GetEnvironmentBasedUrl() + '/account/verify?accountId=' + accountId;
 
     await sendGridMailer.send({
       to: receiverMail,
@@ -18,15 +19,6 @@ export class MailService {
       '<p>Please open the following link to verify your account:</p>' +
       '<a href="' + verificationLink + '">' + verificationLink + '</a>'
     });
-  }
-
-  private static GetEnvironmentBasedUrl() {
-    switch (process.env.NODE_ENV) {
-    case 'DEV':
-      return 'https://dev.aika.cloud.tinkrinc.co:443';
-    case 'LOCAL':
-      return 'http://localhost:3075';
-    }
   }
 
   public static async SendResetPasswordMail(receiverMail: string, accountId: string, resetToken: string) {

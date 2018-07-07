@@ -9,6 +9,7 @@ import { PodcastQuery } from '../queries/podcast-query';
 import to, { AsyncResult } from '../utility/to';
 import { CacheAccess } from '../common/cache-access';
 import { PodcastTasks } from '../tasks/podcast-tasks';
+import GetEnvironmentBasedUrl from '../utility/environment';
 
 export class PodcastController {
   public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
@@ -119,7 +120,35 @@ export class PodcastController {
     };
   }
 
-  public static async StartPodcastImport(logger: AppLogger, accountId: string, podcastSourceIds: string[]) {
+  public static async StartPodcastImportForAccount(logger: AppLogger, accountId: string, podcastSourceIds: string[]) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: PodcastError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    return await this.StartPodcastImport(logger, accountId, podcastSourceIds);
+  }
+
+  public static async StartRawPodcastImport(logger: AppLogger, importSecret: string, podcastSourceIds: string[]) {
+    if (importSecret !== 'dca0e160-6337-4f71-9fb4-5c1373bccd36') {
+      return {
+        msg: {
+          error: 'Import secret is incorrect!',
+          errorCode: PodcastError.PODCAST_IMPORT_SECRET_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    return await this.StartPodcastImport(logger, null, podcastSourceIds);
+  }
+
+  private static async StartPodcastImport(logger: AppLogger, accountId: string, podcastSourceIds: string[]) {
     const isArray = podcastSourceIds && _.isArray(podcastSourceIds);
 
     if (isArray) {
@@ -151,7 +180,7 @@ export class PodcastController {
     let createdPodcastFollowEntries = [];
 
     if (existingPodcasts.length === podcastSourceIds.length) {
-      if (existingPodcasts.length > 0) {
+      if (accountId && existingPodcasts.length > 0) {
         createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, _.pluck(existingPodcasts, 'PID'));
       }
 
@@ -225,7 +254,9 @@ export class PodcastController {
         source: 'itunes',
         sourceId: iTunesPodcastEntry.collectionId,
         feedUrl: iTunesPodcastEntry.feedUrl,
-        podcastId: uuidv4()
+        podcastId: uuidv4(),
+        resultPostUrl: GetEnvironmentBasedUrl() + '/podcast/import/episodes',
+        taskToken: uuidv4()
       });
     }
 
@@ -274,6 +305,14 @@ export class PodcastController {
     const importStartPromises = new Array<Promise<AsyncResult>>();
 
     for (const podcastImportData of podcastImportDataList) {
+      const importTokenKey = 'EIMPORTTOKEN-' + podcastImportData.podcastId;
+      const setImportTokenAsyncResult = await to(CacheAccess.Set(importTokenKey, podcastImportData.taskToken, 900));
+
+      if (setImportTokenAsyncResult.error) {
+        logger.Error(setImportTokenAsyncResult.error);
+        continue;
+      }
+
       importStartPromises.push(to(PodcastTasks.InvokePodcastImport(logger, podcastImportData)));
     }
 
@@ -288,7 +327,7 @@ export class PodcastController {
       }
     }
 
-    if (podcastIdsToFollow.length > 0 || existingPodcasts.length > 0) {
+    if (accountId && (podcastIdsToFollow.length > 0 || existingPodcasts.length > 0)) {
       const podcastIdsToForce = new Set(_.pluck(podcastImportDataList, 'podcastId'));
       createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId,
         podcastIdsToFollow.concat(_.pluck(existingPodcasts, 'PID')), podcastIdsToForce);
