@@ -219,7 +219,8 @@ export class PodcastController {
 
     iTunesQuery += '&entity=podcast';
 
-    logger.Info('Fetching podcast entries from iTunes: ' + JSON.stringify(podcastSourceIds));
+    logger.Info('Fetching podcast entries from iTunes: ' + JSON.stringify(podcastSourceIds) +
+      ' with url: ' + iTunesQuery);
     const iTunesQueryResult = await to(fetch(iTunesQuery));
 
     if (iTunesQueryResult.error) {
@@ -227,6 +228,9 @@ export class PodcastController {
     }
 
     let unzipResult = await iTunesQueryResult.result.text();
+
+    logger.Info('Received podcast import data from iTunes: ' + unzipResult);
+
     unzipResult = JSON.parse(unzipResult);
 
     if (!unzipResult || _.isEmpty(unzipResult.results)) {
