@@ -184,6 +184,8 @@ export class PodcastController {
         createdPodcastFollowEntries = await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, _.pluck(existingPodcasts, 'PID'));
       }
 
+      logger.Info('All podcasts are already imported. Responding early!');
+
       return {
         msg: {
           existingPodcasts: PodcastController.GetPodcastResponseMessage(existingPodcasts, createdPodcastFollowEntries),
@@ -264,7 +266,7 @@ export class PodcastController {
       });
     }
 
-    logger.Info('Received podcast import data from iTunes: ' + JSON.stringify(podcastImportDataList));
+    logger.Info('Created podcast import data: ' + JSON.stringify(podcastImportDataList));
 
     const podcastCacheSetResult = await to(CacheAccess.SetIfNotExistBatch(_.map(podcastImportDataList, (entry) => {
       return {
@@ -429,13 +431,7 @@ export class PodcastController {
     }
 
     const responseMessage = _.map(podcasts, (podcast: any) => {
-      const podcastFollowData = podcastFollowEntryMap.get(podcast.PID);
-
-      if (!podcastFollowData) {
-        return null;
-      }
-
-      return {
+      const existingPodcast: any = {
         podcastId: podcast.PID,
         name: podcast.NAME,
         description: podcast.DESC,
@@ -445,11 +441,18 @@ export class PodcastController {
         image: podcast.IMG,
         source: podcast.SRC,
         sourceId: podcast.SRCID,
-        sourceLink: podcast.SRCL,
-        followTimestamp: podcastFollowData.FLWTS,
-        lastPlayedTimestamp: podcastFollowData.LUTS,
-        playedCount: podcastFollowData.PLAYD
+        sourceLink: podcast.SRCL
       };
+
+      const podcastFollowData = podcastFollowEntryMap.get(podcast.PID);
+
+      if (podcastFollowData) {
+        existingPodcast.followTimestamp = podcastFollowData.FLWTS;
+        existingPodcast.lastPlayedTimestamp = podcastFollowData.LUTS;
+        existingPodcast.playedCount = podcastFollowData.PLAYD;
+      }
+
+      return existingPodcast;
     });
 
     return _.compact(responseMessage);
