@@ -52,7 +52,9 @@ const startup = async function() {
   const app = express();
 
   // TODO: Change when gzip and protobuf is used. Maybe only use for dev?
-  app.use(bodyParser.json());
+  app.use(bodyParser.json({
+    limit: '1mb'
+  }));
   app.use(expressRequestId({ headerName: 'X-Amzn-Trace-Id', setHeader: true })); // will not overwrite
 
   // used for healthcheck
