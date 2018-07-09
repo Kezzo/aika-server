@@ -15,10 +15,10 @@ export class LambdaAccess {
       const lambda = new AWS.Lambda();
       lambda.invoke(params, (error: AWSError, data: InvocationResponse) => {
         if (error) {
-          reject(error);
+          return reject(error);
         }
 
-        resolve(data);
+        return resolve(data);
       });
     });
   }
