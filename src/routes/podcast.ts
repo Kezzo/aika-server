@@ -190,7 +190,7 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
  *     ]
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 CREATED
+ *     HTTP/1.1 200 OK
  *     {}
  */
 router.post('/import/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
