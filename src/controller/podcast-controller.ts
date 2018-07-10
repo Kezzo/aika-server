@@ -411,11 +411,13 @@ export class PodcastController {
       logger.Warn('Only ' + addEpsiodeEntriesToCacheAsyncResult.result + ' from existing ' + episodeDatabaseEntries.length + ' episodes were added to the cache');
     }
 
-    const invokeLambdaAsyncResult = await to(PodcastTasks.InvokeEpisodeImport(logger, JSON.stringify({ podcastId })));
+    const startEpisodeImportAsyncResult = await to(PodcastTasks.StartEpisodeImport(logger, podcastId));
 
-    if (invokeLambdaAsyncResult.error) {
-      throw invokeLambdaAsyncResult.error;
+    if (startEpisodeImportAsyncResult.error) {
+      throw startEpisodeImportAsyncResult.error;
     }
+
+    logger.Info('Successfully start episode import: ' + JSON.stringify(startEpisodeImportAsyncResult.result));
 
     return {
       msg: '',

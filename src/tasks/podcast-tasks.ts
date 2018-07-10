@@ -1,6 +1,7 @@
 import { AppLogger } from '../logging/app-logger';
 import { LambdaAccess } from '../common/lambda-access';
 import to from '../utility/to';
+import { StepFunctionsAccess } from '../common/step-functions-access';
 
 export class PodcastTasks {
   public static async InvokePodcastImport(logger: AppLogger, payload: object) {
@@ -17,9 +18,11 @@ export class PodcastTasks {
     });
   }
 
-  public static async InvokeEpisodeImport(logger: AppLogger, podcastId: string) {
-    logger.Info('Invoking episode import task with podcastId: ' + podcastId);
+  public static async StartEpisodeImport(logger: AppLogger, podcastId: string) {
+    logger.Info('Invoking episode import step function with podcastId: ' + podcastId);
 
-    return LambdaAccess.InvokeLambda('aika-dev-episode-import', podcastId);
+    return StepFunctionsAccess.StartExecution(
+      'arn:aws:states:eu-west-1:503165322814:stateMachine:aika-continuous-episode-import',
+      JSON.stringify({ podcastId }));
   }
 }
