@@ -22,6 +22,7 @@ export class PodcastTasks {
     logger.Info('Invoking episode import step function with podcastId: ' + podcastId);
 
     return StepFunctionsAccess.StartExecution(
-      'arn:aws:states:eu-west-1:503165322814:stateMachine:aika-continuous-episode-import', podcastId);
+      'arn:aws:states:eu-west-1:503165322814:stateMachine:aika-continuous-episode-import',
+      JSON.stringify({ podcastId }));
   }
 }
