@@ -312,7 +312,7 @@ export class PodcastController {
 
     for (const podcastImportData of podcastImportDataList) {
       const importTokenKey = 'EIMPORTTOKEN-' + podcastImportData.podcastId;
-      const setImportTokenAsyncResult = await to(CacheAccess.Set(importTokenKey, podcastImportData.taskToken, 900));
+      const setImportTokenAsyncResult = await to(CacheAccess.Set(importTokenKey, podcastImportData.taskToken, 300));
 
       if (setImportTokenAsyncResult.error) {
         logger.Error(setImportTokenAsyncResult.error);
@@ -350,9 +350,9 @@ export class PodcastController {
   }
 
   public static async StartEpisodeImport(logger: AppLogger, podcastId: string,
-    taskToken: string, episodeDatabaseEntries: any[]) {
+    taskToken: string, updateToken: string, episodeDatabaseEntries: any[]) {
 
-    if (!podcastId || !taskToken || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
+    if (!podcastId || (!taskToken && !updateToken) || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
       return {
         msg: {
           error: 'The episode import data is invalid!',
@@ -362,12 +362,22 @@ export class PodcastController {
       };
     }
 
-    const importTokenKey = 'EIMPORTTOKEN-' + podcastId;
-    const getImportTokenAsyncResult = await to(CacheAccess.Get(importTokenKey));
+    let tokenKey = '';
+    let token = '';
+
+    if (taskToken) {
+      tokenKey = 'EIMPORTTOKEN-' + podcastId;
+      token = taskToken;
+    } else if (updateToken) {
+      tokenKey = 'EUPDATETOKEN-' + podcastId;
+      token = updateToken;
+    }
+
+    const getImportTokenAsyncResult = await to(CacheAccess.Get(tokenKey));
 
     // token doesn't exists.
     if (getImportTokenAsyncResult.error || !getImportTokenAsyncResult.result ||
-      taskToken !== getImportTokenAsyncResult.result) {
+      token !== getImportTokenAsyncResult.result) {
       return {
         msg: {
           error: 'The episode import token is invalid!',
@@ -377,7 +387,7 @@ export class PodcastController {
       };
     }
 
-    const removeImportTokenAsyncResult = await to(CacheAccess.Delete(importTokenKey));
+    const removeImportTokenAsyncResult = await to(CacheAccess.Delete(tokenKey));
 
     if (removeImportTokenAsyncResult.error) {
       throw removeImportTokenAsyncResult.error;
