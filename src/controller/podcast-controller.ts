@@ -9,7 +9,7 @@ import { PodcastQuery } from '../queries/podcast-query';
 import to, { AsyncResult } from '../utility/to';
 import { CacheAccess } from '../common/cache-access';
 import { PodcastTasks } from '../tasks/podcast-tasks';
-import GetEnvironmentBasedUrl from '../utility/environment';
+import { EnvironmentHelper } from '../utility/environment-helper';
 
 export class PodcastController {
   public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
@@ -261,7 +261,7 @@ export class PodcastController {
         sourceId: iTunesPodcastEntry.collectionId,
         feedUrl: iTunesPodcastEntry.feedUrl,
         podcastId: uuidv4(),
-        resultPostUrl: GetEnvironmentBasedUrl() + '/podcast/import/episodes',
+        resultPostUrl: EnvironmentHelper.GetServerUrl() + '/podcast/import/episodes',
         taskToken: uuidv4()
       });
     }

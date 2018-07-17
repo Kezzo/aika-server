@@ -16,7 +16,6 @@ export class DatabaseAccess {
     });
 
     this.dynamodb = new AWS.DynamoDB.DocumentClient();
-
     appLogger.Info('DatabaseAccess Init!');
   }
 

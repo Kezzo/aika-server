@@ -6,6 +6,9 @@ import bodyParser = require('body-parser');
 import expressRequestId = require('express-request-id');
 import path = require('path');
 
+import { EnvironmentHelper } from './utility/environment-helper';
+import { Environment } from './utility/environment';
+
 import { FirehoseStream } from './logging/firehose-stream';
 import { ConsoleStream } from './logging/console-stream';
 
@@ -28,7 +31,7 @@ const startup = async function() {
   const logDirectory = path.join(path.resolve(__dirname, '..') + '/logs');
 
   let logStreamToUse;
-  if (process.env.NODE_ENV === 'LOCAL') {
+  if (EnvironmentHelper.GetEnvironment() === Environment.LOCAL) {
     logStreamToUse = ConsoleStream;
   } else {
     FirehoseStream.Init();
@@ -62,7 +65,7 @@ const startup = async function() {
     res.send();
   });
 
-  if (process.env.NODE_ENV !== 'LIVE') {
+  if (EnvironmentHelper.GetEnvironment() !== Environment.LIVE) {
     // api documentation
     app.use('/api', express.static(path.join(__dirname, '../apidoc')));
   }
