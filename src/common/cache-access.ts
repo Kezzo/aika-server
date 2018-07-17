@@ -2,14 +2,35 @@ import _ = require('underscore');
 import redis = require('redis');
 
 import { AppLogger } from '../logging/app-logger';
+import { EnvironmentHelper } from '../utility/environment-helper';
+import { Environment } from '../utility/environment';
 
 export class CacheAccess {
   private static redisClient: redis.RedisClient;
 
-  public static Init(logger: AppLogger) {
+  public static async Init(logger: AppLogger) {
+    const cacheEndpoint = this.GetCacheEndpoint();
+    logger.Info('Connecting to cache service host: ' + cacheEndpoint);
+
     this.redisClient = redis.createClient({
-      host: this.GetCacheEndpoint(),
+      host: cacheEndpoint,
       port: 6379
+    });
+
+    this.redisClient.on('error', (error) => {
+      logger.Error('Redis cache error: ' + error);
+    });
+
+    await this.WaitForConnectionReady();
+
+    logger.Info('Connected to cache service');
+  }
+
+  private static async WaitForConnectionReady() {
+    return new Promise((resolve) => {
+      this.redisClient.on('ready', () => {
+        return resolve();
+      });
     });
   }
 
@@ -116,10 +137,10 @@ export class CacheAccess {
   }
 
   private static GetCacheEndpoint() {
-    switch (process.env.NODE_ENV) {
-    case 'DEV':
+    switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.DEV:
       return 'dev-aika-redis.nyrfwx.0001.euw1.cache.amazonaws.com';
-    case 'LOCAL':
+    case Environment.LOCAL:
       return 'localhost';
     }
   }

@@ -1,6 +1,7 @@
 import sendGridMailer = require('@sendgrid/mail');
 import { SecretsProvider } from './secrets-provider';
-import GetEnvironmentBasedUrl from '../utility/environment';
+import { EnvironmentHelper } from '../utility/environment-helper';
+import { Environment } from '../utility/environment';
 
 export class MailService {
   public static Init() {
@@ -8,7 +9,7 @@ export class MailService {
   }
 
   public static async SendVerificationMail(receiverMail: string, accountId: string) {
-    const verificationLink = GetEnvironmentBasedUrl() + '/account/verify?accountId=' + accountId;
+    const verificationLink = EnvironmentHelper.GetServerUrl() + '/account/verify?accountId=' + accountId;
 
     await sendGridMailer.send({
       to: receiverMail,
@@ -38,10 +39,10 @@ export class MailService {
   }
 
   private static GetEnvironmentBasedWebsiteUrl() {
-    switch (process.env.NODE_ENV) {
-    case 'DEV':
+    switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.DEV:
       return 'https://tinkrinc.co/reset.html?dev=true';
-    case 'LOCAL':
+    case Environment.LOCAL:
       return 'https://tinkrinc.co/reset.html?local=true';
     }
   }
