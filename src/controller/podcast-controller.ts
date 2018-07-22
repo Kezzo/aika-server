@@ -94,25 +94,8 @@ export class PodcastController {
       }
     }
 
-    let episodes = await PodcastQuery.GetEpisodes(logger, podcastId, lastReleaseTimestamp, oldestReleaseTimestamp);
-
-    let responseMessage = '';
-
-    if (episodes) {
-      episodes = _.map(episodes, (episode: any) => {
-        return {
-          podcastId: episode.PID,
-          name: episode.NAME,
-          description: episode.DESC,
-          releaseTimestamp: episode.RLSTS,
-          duration: episode.DRTN,
-          audioUrl: episode.AUDURL,
-          likedCount: episode.LKD
-        };
-      });
-
-      responseMessage = episodes;
-    }
+    const episodes = await PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, lastReleaseTimestamp, oldestReleaseTimestamp);
+    const responseMessage = episodes ? this.GetEpisodeResponseMessage(episodes) : '';
 
     return {
       msg: responseMessage,
@@ -435,11 +418,13 @@ export class PodcastController {
     };
   }
 
-  private static GetPodcastResponseMessage(podcasts: any[], podcastFollowEntries: any[]) {
+  public static GetPodcastResponseMessage(podcasts: any[], podcastFollowEntries: any[]) {
     const podcastFollowEntryMap = new Map();
 
-    for (const podcastFollowEntry of podcastFollowEntries) {
-      podcastFollowEntryMap.set(podcastFollowEntry.PID, podcastFollowEntry);
+    if (podcastFollowEntries) {
+      for (const podcastFollowEntry of podcastFollowEntries) {
+        podcastFollowEntryMap.set(podcastFollowEntry.PID, podcastFollowEntry);
+      }
     }
 
     const responseMessage = _.map(podcasts, (podcast: any) => {
@@ -468,5 +453,18 @@ export class PodcastController {
     });
 
     return _.compact(responseMessage);
+  }
+
+  public static GetEpisodeResponseMessage(episodes: any[]) {
+    return _.map(episodes, (episode: any) => {
+      return {
+        podcastId: episode.PID,
+        name: episode.NAME,
+        description: episode.DESC,
+        releaseTimestamp: episode.RLSTS,
+        duration: episode.DRTN,
+        audioUrl: episode.MEDIA
+      };
+    });
   }
 }

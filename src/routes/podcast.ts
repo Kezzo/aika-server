@@ -30,7 +30,6 @@ import { Response } from '../common/response';
  *         "sourceLink": "itunes.com",
  *         "followTimestamp": 15283420140000,
  *         "lastPlayedTimestamp": 1528642014,
- *         "playedCount": 10
  *       }
  *    ]
  */

@@ -24,6 +24,7 @@ import { LogLevel } from './logging/log-level';
 import { MailService } from './common/mail-service';
 
 import { TwitterService } from './platforms/twitter-service';
+import { SearchAccess } from './common/search-access';
 
 let appLogger: AppLogger;
 
@@ -76,12 +77,10 @@ const startup = async function() {
 
   app.use(OneTimeTokenService.CheckOTT);
 
-  await SecretsProvider.LoadSecrets([
-    'send-grid-api-key',
-    'aika-twitter-api-keys']);
-
   DatabaseAccess.Init(appLogger);
-  CacheAccess.Init(appLogger);
+  await Promise.all([SecretsProvider.LoadSecrets(['send-grid-api-key', 'aika-twitter-api-keys']),
+    CacheAccess.Init(appLogger), SearchAccess.Init(appLogger)]);
+
   MailService.Init();
   TwitterService.Init();
   RouteLoader.LoadRoutes(appLogger, app);

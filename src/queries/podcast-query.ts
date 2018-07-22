@@ -66,7 +66,7 @@ export class PodcastQuery {
     return results;
   }
 
-  public static async GetEpisodes(logger: AppLogger, podcastId: string,
+  public static async GetEpisodesOfPodcast(logger: AppLogger, podcastId: string,
     lastReleaseTimestamp?: number, oldestReleaseTimestamp?: number) {
     if (!podcastId) {
       return null;
@@ -94,6 +94,34 @@ export class PodcastQuery {
     }
 
     return asyncResult.result;
+  }
+
+  public static async GetEpisodes(logger: AppLogger, episodesIds: Array<{podcastId: string, releaseTimestamp: number}>) {
+    if (!episodesIds || episodesIds.length <= 0) {
+      return null;
+    }
+
+    const keys = [];
+
+    for (const episodesId of episodesIds) {
+      keys.push({ PID: episodesId.podcastId, RLSTS: episodesId.releaseTimestamp });
+    }
+
+    const params = {
+      RequestItems: {
+        EPISODES: {
+          Keys: keys
+        }
+      }
+    };
+
+    const asyncResult = await to(DatabaseAccess.GetMany(logger, params));
+
+    if (asyncResult.error) {
+      throw asyncResult.error;
+    }
+
+    return asyncResult.result.EPISODES;
   }
 
   public static async GetFollowedPodcastEntries(logger: AppLogger, accountId: string, lastFollowTimestamp?: number) {
