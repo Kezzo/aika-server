@@ -28,7 +28,7 @@ export class SearchAccess {
     switch (EnvironmentHelper.GetEnvironment()) {
     case Environment.DEV:
       config = {
-        host: 'https://amazon-es-host.us-east-1.es.amazonaws.com',
+        host: 'https://vpc-aika-dev-app-search-ppjmsnw3dv6li3nzbiytzajfjy.eu-west-1.es.amazonaws.com',
         log: 'error',
         connectionClass: require('http-aws-es')
       };
