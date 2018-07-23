@@ -32,11 +32,13 @@ export class SearchAccess {
         log: 'error',
         connectionClass: require('http-aws-es')
       };
+      break;
     case Environment.LOCAL:
       config = {
         host: 'localhost:9200',
         log: 'trace'
       };
+      break;
     }
 
     return config;
