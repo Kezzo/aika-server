@@ -5,7 +5,6 @@ import { AppLogger } from '../logging/app-logger';
 import { SearchAccess } from '../common/search-access';
 import { PodcastQuery } from '../queries/podcast-query';
 import { PodcastController } from './podcast-controller';
-import { SearchError } from '../error-codes/search-error';
 
 export class SearchController {
 
@@ -28,10 +27,6 @@ export class SearchController {
         msg: {},
         statusCode: httpStatus.OK
       };
-    }
-
-    if ('test' === 'test') {
-      return searchResults;
     }
 
     const podcastIds = _.pluck(searchResults, '_id');
@@ -190,8 +185,7 @@ export class SearchController {
             }
           ]
         }
-      },
-      explain: true
+      }
     };
   }
 }
