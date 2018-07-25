@@ -19,8 +19,8 @@ export class OneTimeTokenService {
     '/platform/twitter/logintoken',
     '/podcast/import/episodes',
     '/podcast/import/raw',
-    '/search/podcasts/',
-    '/search/episodes/'
+    '/search/podcasts',
+    '/search/episodes'
   ]);
 
   public static async CheckOTT(req: express.Request, res: express.Response, next: NextFunction) {
