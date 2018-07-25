@@ -8,8 +8,8 @@ import { Response } from '../common/response';
 import { SearchController } from '../controller/search-controller';
 
 /**
- * @api {get} /search/podcasts/ /podcasts/
- * @apiName /search/podcasts/
+ * @api {get} /search/podcasts/?term?next /podcasts/?term?next
+ * @apiName /search/podcasts/?term?next
  * @apiDescription Returns podcasts based on a given search term.
  * @apiGroup Search
  *
@@ -44,8 +44,8 @@ router.get('/podcasts/', function(req: express.Request, res: express.Response, n
 });
 
 /**
- * @api {get} /search/episodes/ /episodes/
- * @apiName /search/episodes/
+ * @api {get} /search/episodes/?term?next /episodes/?term?next
+ * @apiName /search/episodes/?term?next
  * @apiDescription Returns episodes based on a given search term.
  * @apiGroup Search
  *

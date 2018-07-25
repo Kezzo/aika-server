@@ -12,6 +12,48 @@ import { PodcastTasks } from '../tasks/podcast-tasks';
 import { EnvironmentHelper } from '../utility/environment-helper';
 
 export class PodcastController {
+
+  public static async GetPodcast(logger: AppLogger, podcastId: string) {
+    if (!podcastId) {
+      return {
+        msg: {
+          error: 'Podcast id is missing!',
+          errorCode: PodcastError.PODCAST_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const podcast = await PodcastQuery.GetPodcast(logger, podcastId);
+
+    if (!podcast) {
+      return {
+        msg: {
+          error: 'Podcast with id: ' + podcastId + 'not found!',
+          errorCode: PodcastError.PODCAST_NOT_FOUND
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let responseMessage;
+
+    if (podcast) {
+      responseMessage = PodcastController.GetPodcastResponseMessage([podcast], null);
+      if (responseMessage && _.isArray(responseMessage) && responseMessage.length > 0) {
+        responseMessage = responseMessage[0];
+      }
+
+    } else {
+      responseMessage = '';
+    }
+
+    return {
+      msg: responseMessage,
+      statusCode: httpStatus.OK
+    };
+  }
+
   public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
 
     if (!accountId) {

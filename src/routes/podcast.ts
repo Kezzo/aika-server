@@ -8,6 +8,43 @@ import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
 /**
+ * @api {get} /podcast?id /?id
+ * @apiName /podcast?id
+ * @apiDescription Gets the podcast data with the given PID.
+ * @apiGroup Podcast
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     [
+ *       {
+ *         "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
+ *         "name": "The best Podcast in the World",
+ *         "description": "But this is just a tribute",
+ *         "author": "Jack Green",
+ *         "authorUrl": "www.podcastauthor2.com",
+ *         "genre": "SCIENCE",
+ *         "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
+ *         "source": "itunes",
+ *         "sourceLink": "itunes.com",
+ *         "followTimestamp": 15283420140000,
+ *         "lastPlayedTimestamp": 1528642014,
+ *       }
+ *    ]
+ */
+router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const podcastId = req.param('id');
+
+  PodcastController.GetPodcast(logger, podcastId)
+    .then((podcastData) => {
+      new Response(res, podcastData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
  * @api {get} /podcast/followed /followed
  * @apiName /podcast/followed
  * @apiDescription Gets the a set of the podcasts a user follows, sorted by relevance to the user.
@@ -16,7 +53,7 @@ import { Response } from '../common/response';
  * @apiParam {Number} lastFollowTimestamp Optional. UTC-Timestamp. Can be set to only get podcast the user started following after the time of the timestamp. (to get latest podcasts, not cached yet)
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 OK
+ *     HTTP/1.1 200 OK
  *     [
  *       {
  *         "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
@@ -57,7 +94,7 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  * @apiParam {Number} oldestReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released before the timestamp. (can be used for pagination)
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 OK
+ *     HTTP/1.1 200 OK
  *     [
  *       {
  *          "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",

@@ -6,6 +6,25 @@ import { AppLogger } from '../logging/app-logger';
 import to, { AsyncResult } from '../utility/to';
 
 export class PodcastQuery {
+  public static async GetPodcast(logger: AppLogger, podcastId: string) {
+    if (!podcastId) {
+      return null;
+    }
+
+    const params: any = {
+      TableName: 'PODCASTS',
+      Key: { PID: podcastId }
+    };
+
+    const asyncResult = await to(DatabaseAccess.Get(logger, params));
+
+    if (asyncResult.error) {
+      throw asyncResult.error;
+    }
+
+    return asyncResult.result;
+  }
+
   public static async GetPodcasts(logger: AppLogger, podcastIds: string[]) {
     if (!podcastIds) {
       return null;
