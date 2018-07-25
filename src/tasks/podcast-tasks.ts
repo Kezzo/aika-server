@@ -6,12 +6,12 @@ import { StepFunctionsAccess } from '../common/step-functions-access';
 export class PodcastTasks {
   public static async InvokePodcastImport(logger: AppLogger, payload: object) {
     return new Promise(async (resolve, reject) => {
-      logger.Info('Invoking podcast import task with payload: ' + JSON.stringify(payload));
+      logger.Info('Invoking podcast import step function with payload: ' + JSON.stringify(payload));
 
-      const lambdaStartAsyncResult = await to(LambdaAccess.InvokeLambda('aika-dev-podcast-import', JSON.stringify(payload)));
+      const podcastImportStartAsyncResult = await to(StepFunctionsAccess.StartExecution('arn:aws:states:eu-west-1:503165322814:stateMachine:aika-podcast-import', JSON.stringify(payload)));
 
-      if (lambdaStartAsyncResult.error) {
-        return reject(lambdaStartAsyncResult.error);
+      if (podcastImportStartAsyncResult.error) {
+        return reject(podcastImportStartAsyncResult.error);
       }
 
       return resolve(payload);
