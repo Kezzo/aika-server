@@ -85,8 +85,8 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 });
 
 /**
- * @api {get} /podcast/episodes/:podcastId /episodes
- * @apiName /podcast/episodes
+ * @api {get} /podcast/episodes?podcastId /episodes?podcastId
+ * @apiName /podcast/episodes?podcastId
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
  * @apiGroup Podcast
  *
@@ -107,7 +107,7 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  *       }
  *    ]
  */
-router.get('/episodes/:podcastId', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.get('/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.param('podcastId');
   const lastReleaseTimestamp = req.param('lastReleaseTimestamp');

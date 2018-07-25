@@ -17,6 +17,8 @@ export class OneTimeTokenService {
     '/account/password/reset',
     '/account/password/change',
     '/platform/twitter/logintoken',
+    '/podcast',
+    '/podcast/episodes',
     '/podcast/import/episodes',
     '/podcast/import/raw',
     '/search/podcasts',
