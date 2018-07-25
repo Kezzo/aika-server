@@ -8,13 +8,13 @@ import { Response } from '../common/response';
 import { SearchController } from '../controller/search-controller';
 
 /**
- * @api {get} /search/podcasts/?term?next /podcasts/?term?next
- * @apiName /search/podcasts/?term?next
+ * @api {get} /search/podcasts?term?next /podcasts?term?next
+ * @apiName /search/podcasts?term?next
  * @apiDescription Returns podcasts based on a given search term.
  * @apiGroup Search
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 OK
+ *     HTTP/1.1 200 OK
  *     [
  *       {
  *          "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
@@ -29,7 +29,7 @@ import { SearchController } from '../controller/search-controller';
  *        }
  *     ]
  */
-router.get('/podcasts/', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.get('/podcasts', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const searchTerm = req.param('term');
   const nextToken = req.param('next');
@@ -44,13 +44,13 @@ router.get('/podcasts/', function(req: express.Request, res: express.Response, n
 });
 
 /**
- * @api {get} /search/episodes/?term?next /episodes/?term?next
- * @apiName /search/episodes/?term?next
+ * @api {get} /search/episodes?term?next /episodes?term?next
+ * @apiName /search/episodes?term?next
  * @apiDescription Returns episodes based on a given search term.
  * @apiGroup Search
  *
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 OK
+ *     HTTP/1.1 200 OK
  *     [
  *       {
  *          "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
@@ -62,12 +62,46 @@ router.get('/podcasts/', function(req: express.Request, res: express.Response, n
  *       }
  *   ]
  */
-router.get('/episodes/', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.get('/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const searchTerm = req.param('term');
   const nextToken = req.param('next');
 
   SearchController.SearchForEpisodes(logger, searchTerm, nextToken)
+    .then((searchResults) => {
+      new Response(res, searchResults).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {get} /search/suggestions?term /suggestions?term
+ * @apiName /search/suggestions?term
+ * @apiDescription Returns podcast name search suggestion. Used while the user is typing.
+ * @apiGroup Search
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     [
+ *        "Jenna & Julien Podcast",
+ *        "Jesus and Jollof",
+ *        "Dear Joan and Jericha (Julia Davis and Vicki Pepperdine)",
+ *        "Hanna ja Joonas - Kermaperse & Komposti",
+ *        "Julio Caezar presents JuliTunzZz Radio",
+ *        "Learn Japanese | JapanesePod101.com (Audio)",
+ *        "Jacques... Jacques Higelin",
+ *        "Jäljillä",
+ *        "秋元才加とJOYのWeekly Japan!!",
+ *        "Jocko Podcast"
+ *     ]
+ */
+router.get('/suggestions', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const searchTerm = req.param('term');
+
+  SearchController.SearchForSuggestions(logger, searchTerm)
     .then((searchResults) => {
       new Response(res, searchResults).Send();
     })

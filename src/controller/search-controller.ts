@@ -9,6 +9,7 @@ import { PodcastController } from './podcast-controller';
 export class SearchController {
 
   private static searchResultPageSize = 20;
+  private static suggestionsSize = 10;
 
   public static async SearchForPodcasts(logger: AppLogger, searchTerm: string, nextToken: any) {
     searchTerm = this.SanitizeSearchTerm(searchTerm);
@@ -90,8 +91,8 @@ export class SearchController {
 
     const sortedEpisodeResults = [];
     for (const searchResult of searchResults) {
-      sortedEpisodeResults.push(_.find(getEpisodesAsyncResult, (episodes: any) => {
-        const compositeEpisodeKey = episodes.PID + '+' + episodes.RLSTS;
+      sortedEpisodeResults.push(_.find(getEpisodesAsyncResult, (episode: any) => {
+        const compositeEpisodeKey = episode.PID + '+' + episode.RLSTS;
         return compositeEpisodeKey === searchResult._id;
       }));
     }
@@ -108,6 +109,38 @@ export class SearchController {
       msg: {
         result: podcastEntries,
         nextToken: nextNextToken
+      },
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async SearchForSuggestions(logger: AppLogger, searchTerm: string) {
+    searchTerm = this.SanitizeSearchTerm(searchTerm);
+    if (!searchTerm) {
+      return {
+        msg: {},
+        statusCode: httpStatus.OK
+      };
+    }
+
+    const searchResults = await SearchAccess.Search(logger, 'podcasts', this.GetSuggestionsQuery(searchTerm));
+
+    if (!searchResults || searchResults.length === 0) {
+      return {
+        msg: {},
+        statusCode: httpStatus.OK
+      };
+    }
+
+    const podcastNames = [];
+
+    for (const searchResult of searchResults) {
+      podcastNames.push(searchResult._source.NAME);
+    }
+
+    return {
+      msg: {
+        result: podcastNames
       },
       statusCode: httpStatus.OK
     };
@@ -184,6 +217,17 @@ export class SearchController {
               match_phrase: { NAME_UA: searchTerm }
             }
           ]
+        }
+      }
+    };
+  }
+
+  private static GetSuggestionsQuery(searchTerm: string) {
+    return {
+      size: this.suggestionsSize,
+      query: {
+        match_phrase_prefix: {
+          NAME_UA: searchTerm
         }
       }
     };

@@ -20,7 +20,8 @@ export class OneTimeTokenService {
     '/podcast/import/episodes',
     '/podcast/import/raw',
     '/search/podcasts',
-    '/search/episodes'
+    '/search/episodes',
+    '/search/suggestions'
   ]);
 
   public static async CheckOTT(req: express.Request, res: express.Response, next: NextFunction) {
