@@ -500,6 +500,7 @@ export class PodcastController {
   public static GetEpisodeResponseMessage(episodes: any[]) {
     return _.map(episodes, (episode: any) => {
       return {
+        episodeId: episode.PID + episode.RLSTS,
         podcastId: episode.PID,
         name: episode.NAME,
         description: episode.DESC,
