@@ -13,23 +13,24 @@ import { Response } from '../common/response';
  * @apiDescription Gets the podcast data with the given PID.
  * @apiGroup Podcast
  *
+ * @apiParamExample {json} Request-Example:
+ *     GET /podcast?id=34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
- *     [
- *       {
- *         "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
- *         "name": "The best Podcast in the World",
- *         "description": "But this is just a tribute",
- *         "author": "Jack Green",
- *         "authorUrl": "www.podcastauthor2.com",
- *         "genre": "SCIENCE",
- *         "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
- *         "source": "itunes",
- *         "sourceLink": "itunes.com",
- *         "followTimestamp": 15283420140000,
- *         "lastPlayedTimestamp": 1528642014,
- *       }
- *    ]
+ *     {
+ *       "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
+ *       "name": "The best Podcast in the World",
+ *       "description": "But this is just a tribute",
+ *       "author": "Jack Green",
+ *       "authorUrl": "www.podcastauthor2.com",
+ *       "genre": "SCIENCE",
+ *       "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
+ *       "source": "itunes",
+ *       "sourceLink": "itunes.com",
+ *       "followTimestamp": 15283420140000,
+ *       "lastPlayedTimestamp": 1528642014,
+ *     }
  */
 router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
@@ -52,6 +53,13 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
  *
  * @apiParam {Number} lastFollowTimestamp Optional. UTC-Timestamp. Can be set to only get podcast the user started following after the time of the timestamp. (to get latest podcasts, not cached yet)
  *
+ * @apiParamExample {json} Request-Example:
+ *     GET /podcast/followed
+ *     GET /podcast/followed?lastFollowTimestamp=1528342013
+ *     Headers: [
+ *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *     ]
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     [
@@ -65,7 +73,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
  *         "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
  *         "source": "itunes",
  *         "sourceLink": "itunes.com",
- *         "followTimestamp": 15283420140000,
+ *         "followTimestamp": 1528342014,
  *         "lastPlayedTimestamp": 1528642014,
  *       }
  *    ]
@@ -93,10 +101,16 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  * @apiParam {Number} lastReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released after the timestamp. (to get latest episodes, not cached yet)
  * @apiParam {Number} oldestReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released before the timestamp. (can be used for pagination)
  *
+ * @apiParamExample {json} Request-Example:
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?lastReleaseTimestamp=1528639577
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?oldestReleaseTimestamp=1528639577
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     [
  *       {
+ *          "episodeId": "c2a145ce-c568-485d-91da-fdeaf23579271528639577",
  *          "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
  *          "name": "The best Episode 2",
  *          "description": "This is just a tribute too",
@@ -129,6 +143,7 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /podcast/import
  *     {
  *       "podcastSourceIds": [
  *         1054815950,
@@ -140,14 +155,12 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 202 ACCEPTED
  *     {
- *       {
- *         "existingPodcasts": [],
- *         "podcastImports": [
- *           "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
- *           "ca359a98-210d-41dd-839e-2b0a20f034a9",
- *           "af4de685-49ca-4555-9658-6620a3ba664f"
- *         ]
- *       }
+ *       "existingPodcasts": [],
+ *       "podcastImports": [
+ *         "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
+ *         "ca359a98-210d-41dd-839e-2b0a20f034a9",
+ *         "af4de685-49ca-4555-9658-6620a3ba664f"
+ *       ]
  *     }
  */
 router.post('/import', function(req: express.Request, res: express.Response, next: NextFunction) {
@@ -171,6 +184,7 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /podcast/import/raw
  *     {
  *       "podcastSourceIds": [
  *         1054815950,
@@ -182,14 +196,12 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 202 ACCEPTED
  *     {
- *       {
- *         "existingPodcasts": [],
- *         "podcastImports": [
- *           "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
- *           "ca359a98-210d-41dd-839e-2b0a20f034a9",
- *           "af4de685-49ca-4555-9658-6620a3ba664f"
- *         ]
- *       }
+ *       "existingPodcasts": [],
+ *       "podcastImports": [
+ *         "dba6e4d2-cf45-4710-8ff8-ff252d5aa856",
+ *         "ca359a98-210d-41dd-839e-2b0a20f034a9",
+ *         "af4de685-49ca-4555-9658-6620a3ba664f"
+ *       ]
  *     }
  */
 router.post('/import/raw', function(req: express.Request, res: express.Response, next: NextFunction) {
@@ -213,6 +225,7 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /podcast/import/episodes
  *     [
  *       {
  *         AUDURL:"https://rss.art19.com/episodes/c6e40d3e-4046-4aed-8e28-36d8979ee983.mp3"
@@ -220,8 +233,8 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
  *         DRTN:4501
  *         LKD:0
  *         NAME:"Courts, Civility, and other C words"
- *        PID:"bb4db974-b94a-42c6-844b-6ca7d3da1de3"
- *        RLSTS:1530220183
+ *         PID:"bb4db974-b94a-42c6-844b-6ca7d3da1de3"
+ *         RLSTS:1530220183
  *       }
  *     ]
  *

@@ -14,6 +14,7 @@ import { Response } from '../common/response';
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     PUT /account/create/mail
  *     {
  *       "mail" : "test@domain.zxc",
  *       "password" : "password1234"
@@ -48,6 +49,7 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     PUT /account/create/twitter
  *     {
  *       "oauthToken": "K6pvHkAAACAA5UiLAADDSY7Iugzo",
  *       "oauthVerifier": "fBObTFO3Uf6YdAIEUtAAtVfkwel1KJt7C"
@@ -82,6 +84,7 @@ router.put('/create/twitter', function(req: express.Request, res: express.Respon
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /account/login/mail
  *     {
  *       "mail" : "test@domain.zxc",
  *       "password" : "password1234"
@@ -116,6 +119,7 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /account/login/twitter
  *     {
  *       "oauthToken": "K6pvHkAAACAA5UiLAADDSY7Iugzo",
  *       "oauthVerifier": "fBObTFO3Uf6YdAIEUtAAtVfkwel1KJt7C"
@@ -150,6 +154,7 @@ router.post('/login/twitter', function(req: express.Request, res: express.Respon
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /account/login/accountid
  *     {
  *       "accountId" : "2c5a0361-8745-4a41-fke2-f03d67ec3152",
  *       "authToken" : "40391a96-0be7-436e-b109-5dfb05944c45"
@@ -183,6 +188,9 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
  *
  * @apiParam {String} accountId The account id of the created account. Sent via mail.
  *
+ * @apiParamExample {json} Request-Example:
+ *     GET /account/verify?accountId=34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     <p> Account verification successful!</p>
@@ -207,8 +215,9 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /account/password/reset
  *     {
- *       "mail" : "jelinski.jon@gmail.com"
+ *        "mail" : "jelinski.jon@gmail.com"
  *     }
  *
  * @apiSuccessExample Success-Response:
@@ -234,10 +243,11 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
+ *     POST /password/change
  *     {
- *      "accountId" : "2c5a0361-8745-4a31-aad2-f93d89ec3152",
- * 	    "resetToken" : "c07eadb3-3fad-4251-ac07-3fd9434dccd6",
- * 	    "newPassword" : "thisIsABetterPassword"
+ *       "accountId" : "2c5a0361-8745-4a31-aad2-f93d89ec3152",
+ * 	     "resetToken" : "c07eadb3-3fad-4251-ac07-3fd9434dccd6",
+ * 	     "newPassword" : "thisIsABetterPassword"
  *     }
  *
  * @apiSuccessExample Success-Response:

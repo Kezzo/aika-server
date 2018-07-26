@@ -14,6 +14,8 @@ import { Platform } from '../../platforms/platforms';
  * @apiDescription Gets a login token from twitter
  * @apiGroup Platform
  *
+ * @apiParamExample {json} Request-Example:
+ *     GET /platform/twitter/logintoken
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
