@@ -8,6 +8,8 @@ import to from '../utility/to';
 
 export class OneTimeTokenService {
   private static nonOTTRequestPaths = new Set([
+    '/app',
+    '/apple-app-site-association',
     '/account/create/mail',
     '/account/create/twitter',
     '/account/login/mail',
