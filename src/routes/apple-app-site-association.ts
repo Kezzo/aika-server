@@ -22,7 +22,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
       apps: [],
       details: [
         {
-          appID: '1383883137.org.aikainc.aika',
+          appID: 'JYNMCM9B26.org.aikainc.aika',
           paths: [
             '/app'
           ]
