@@ -54,6 +54,35 @@ export class PodcastController {
     };
   }
 
+  public static async FollowPodcast(logger: AppLogger, accountId: string, podcastId: string) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: PodcastError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (!podcastId) {
+      return {
+        msg: {
+          error: 'Podcast id is missing!',
+          errorCode: PodcastError.PODCAST_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, [podcastId]);
+
+    return {
+      msg: {},
+      statusCode: httpStatus.OK
+    };
+  }
+
   public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
 
     if (!accountId) {

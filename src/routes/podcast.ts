@@ -46,6 +46,39 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
 });
 
 /**
+ * @api {post} /podcast/follow /follow
+ * @apiName /podcast/follow
+ * @apiDescription Follow the given podcast with the given podcastId.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     POST /podcast/follow
+ *     Headers: [
+ *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *     ]
+ *     {
+ *        "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {}
+ */
+router.post('/follow', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.get('x-account-id');
+  const podcastId = req.body.podcastId;
+
+  PodcastController.FollowPodcast(logger, accountId, podcastId)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
  * @api {get} /podcast/followed /followed
  * @apiName /podcast/followed
  * @apiDescription Gets the a set of the podcasts a user follows, sorted by relevance to the user.
@@ -64,7 +97,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
  *     HTTP/1.1 200 OK
  *     [
  *       {
- *         "podcastId": "34754fd1-6c41-49bc-8172-f65d8e7dd5fe",
+ *         "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
  *         "name": "The best Podcast in the World",
  *         "description": "But this is just a tribute",
  *         "author": "Jack Green",
