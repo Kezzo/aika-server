@@ -83,7 +83,7 @@ export class PodcastController {
     };
   }
 
-  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, lastFollowTimestampString?: string) {
+  public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, nextToken?: string) {
 
     if (!accountId) {
       return {
@@ -96,8 +96,9 @@ export class PodcastController {
     }
 
     let lastFollowTimestamp;
-    if (lastFollowTimestampString) {
-      const parsedInt = parseInt(lastFollowTimestampString, 10);
+    if (nextToken) {
+      const decodedToken = Buffer.from(nextToken, 'base64').toString('utf8');
+      const parsedInt = parseInt(decodedToken, 10);
 
       if (parsedInt && !_.isNaN(parsedInt)) {
         lastFollowTimestamp = parsedInt;
@@ -110,9 +111,18 @@ export class PodcastController {
     // Account doesn't follow podcasts.
     if (!followedPodcasts || followedPodcasts.length === 0) {
       return {
-        msg: {},
+        msg: {
+          result: []
+        },
         statusCode: httpStatus.OK
       };
+    }
+
+    const oldestFollowTimestamp = followedPodcasts[followedPodcasts.length - 1].FLWTS;
+    const nextNextToken = Buffer.from(oldestFollowTimestamp.toString()).toString('base64');
+
+    for (const followedPodcast of followedPodcasts) {
+      followedPodcast.FLWTS = Math.trunc(followedPodcast.FLWTS / 100000);
     }
 
     const podcasts = await PodcastQuery.GetPodcasts(logger, _.pluck(followedPodcasts, 'PID'));
@@ -130,7 +140,10 @@ export class PodcastController {
     }
 
     return {
-      msg: responseMessage,
+      msg: {
+        result: responseMessage,
+        nextToken: nextNextToken
+      },
       statusCode: httpStatus.OK
     };
   }

@@ -84,39 +84,42 @@ router.post('/follow', function(req: express.Request, res: express.Response, nex
  * @apiDescription Gets the a set of the podcasts a user follows, sorted by relevance to the user.
  * @apiGroup Podcast
  *
- * @apiParam {Number} lastFollowTimestamp Optional. UTC-Timestamp. Can be set to only get podcast the user started following after the time of the timestamp. (to get latest podcasts, not cached yet)
+ * @apiParam {String} next Optional. Can be set get the next page of results.
  *
  * @apiParamExample {json} Request-Example:
  *     GET /podcast/followed
- *     GET /podcast/followed?lastFollowTimestamp=1528342013
+ *     GET /podcast/followed?next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
  *     Headers: [
  *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
  *     ]
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
- *     [
- *       {
- *         "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
- *         "name": "The best Podcast in the World",
- *         "description": "But this is just a tribute",
- *         "author": "Jack Green",
- *         "authorUrl": "www.podcastauthor2.com",
- *         "genre": "SCIENCE",
- *         "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
- *         "source": "itunes",
- *         "sourceLink": "itunes.com",
- *         "followTimestamp": 1528342014,
- *         "lastPlayedTimestamp": 1528642014,
- *       }
- *    ]
+ *     {
+ *        "result": [
+ *           {
+ *              "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
+ *              "name": "The best Podcast in the World",
+ *              "description": "But this is just a tribute",
+ *              "author": "Jack Green",
+ *              "authorUrl": "www.podcastauthor2.com",
+ *              "genre": "SCIENCE",
+ *              "image": "https://assets.radiox.co.uk/2014/42/tenacious-d---tribute-video-1414069428-list-handheld-0.jpg",
+ *              "source": "itunes",
+ *              "sourceLink": "itunes.com",
+ *              "followTimestamp": 1528342014,
+ *              "lastPlayedTimestamp": 1528642014,
+ *           }
+ *        ],
+ *        "nextToken": "eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ=="
+ *     }
  */
 router.get('/followed', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.get('x-account-id');
-  const lastFollowTimestamp = req.param('lastFollowTimestamp');
+  const nextToken = req.param('next');
 
-  PodcastController.GetFollowedPodcasts(logger, accountId, lastFollowTimestamp)
+  PodcastController.GetFollowedPodcasts(logger, accountId, nextToken)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })
