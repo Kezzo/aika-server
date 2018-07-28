@@ -5,7 +5,6 @@ import request = require('request');
 import _ = require('underscore');
 
 import to from '../utility/to';
-import { url } from 'inspector';
 import { AppLogger } from '../logging/app-logger';
 import { SecretsProvider } from '../common/secrets-provider';
 

@@ -11,7 +11,6 @@ export class OneTimeTokenService {
     '/app',
     '/apple-app-site-association',
     '/account/create/mail',
-    '/account/create/twitter',
     '/account/send/magiclink',
     '/account/login/mail',
     '/account/login/twitter',

@@ -43,41 +43,6 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
 });
 
 /**
- * @api {put} /account/create/twitter /create/twitter
- * @apiName /account/create/twitter
- * @apiDescription Create a user account with twitter oauth tokens.
- * @apiGroup Account
- *
- * @apiParamExample {json} Request-Example:
- *     PUT /account/create/twitter
- *     {
- *       "oauthToken": "K6pvHkAAACAA5UiLAADDSY7Iugzo",
- *       "oauthVerifier": "fBObTFO3Uf6YdAIEUtAAtVfkwel1KJt7C"
- *     }
- *
- * @apiSuccessExample Success-Response:
- *     HTTP/1.1 201 CREATED
- *     {
- *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
- *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
- *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
- *     }
- */
-router.put('/create/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {
-  const logger = new AppLogger(req, res);
-  const oauthToken = req.body.oauthToken;
-  const oauthVerifier = req.body.oauthVerifier;
-
-  AccountController.CreateAccountFromTwitterAuth(logger, oauthToken, oauthVerifier)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
-    })
-    .catch((error) => {
-      new Response(res, null, error).Send();
-    });
-});
-
-/**
  * @api {post} /account/login/mail /login/mail
  * @apiName /account/login/mail
  * @apiDescription Login to user account with a mail and password.
@@ -179,7 +144,7 @@ router.post('/login/magiclink', function(req: express.Request, res: express.Resp
 /**
  * @api {post} /account/login/twitter /login/twitter
  * @apiName /account/login/twitter
- * @apiDescription Login to user account with twitter oauth tokens.
+ * @apiDescription Login user account with twitter oauth tokens. Will create account if not existent.
  * @apiGroup Account
  *
  * @apiParamExample {json} Request-Example:
@@ -202,13 +167,13 @@ router.post('/login/twitter', function(req: express.Request, res: express.Respon
   const oauthToken = req.body.oauthToken;
   const oauthVerifier = req.body.oauthVerifier;
 
-  AccountController.LoginAccountViaTwitter(logger, oauthToken, oauthVerifier)
-  .then((accountData) => {
-    new Response(res, accountData).Send();
-  })
-  .catch((error) => {
-    new Response(res, null, error).Send();
-  });
+  AccountController.LoginAccountViaTwitterAuth(logger, oauthToken, oauthVerifier)
+    .then((accountData) => {
+      new Response(res, accountData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
 });
 
 /**

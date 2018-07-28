@@ -78,63 +78,6 @@ export class AccountController {
     };
   }
 
-  public static async CreateAccountFromTwitterAuth(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
-
-    if (!oauthToken || !oauthVerifier) {
-      return {
-        msg: {
-          error: 'OauthToken or OauthVerifier missing!',
-          errorCode: AccountError.TWITTER_AUTH_PARAMS_MISSING
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
-    }
-
-    // TODO: Also get access tokens and store them!
-    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
-
-    if (!twitterId) {
-      return {
-        msg: {
-          error: 'Couldn\'t retrieve TwitterId with given tokens!',
-          errorCode: AccountError.TWITTER_AUTH_FAILED
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
-    }
-
-    const accountData = await AccountQuery.GetAccount(logger, true, null, null, twitterId);
-
-    if (accountData) {
-      return {
-        msg: {
-          error: 'Account with twitterid already exists!',
-          errorCode: AccountError.ACCOUNT_ALREADY_EXISTS
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
-    }
-
-    const asyncResult = await to(AccountQuery.CreateAccountFromTwitterId(logger, twitterId));
-
-    if (asyncResult.error) {
-      throw asyncResult.error;
-    }
-
-    const ott = await OneTimeTokenService.GenerateOTT(asyncResult.result.ACCID);
-
-    const response = {
-      accountId: asyncResult.result.ACCID,
-      authToken: asyncResult.result.AUTHTK,
-      oneTimeToken: ott
-    };
-
-    return {
-      msg: response,
-      statusCode: httpStatus.CREATED
-    };
-  }
-
   public static async VerifyAccount(logger: AppLogger, accountId: string) {
     if (!accountId || accountId.length === 0) {
       return {
@@ -269,36 +212,6 @@ export class AccountController {
     return getAsyncResult.result && getAsyncResult.result === loginToken;
   }
 
-  public static async LoginAccountViaTwitter(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
-    if (!oauthToken || !oauthVerifier) {
-      return {
-        msg: {
-          error: 'Login via twitter requires oauthToken and oauthVerifier!',
-          errorCode: AccountError.LOGIN_DETAILS_MISSING
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
-    }
-
-    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
-
-    if (!twitterId) {
-      return {
-        msg: {
-          error: 'Couldn\'t retrieve TwitterId with given tokens!',
-          errorCode: AccountError.TWITTER_AUTH_FAILED
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
-    }
-
-    return await this.LoginAccount(logger, null, null, twitterId, true, (accountData) => {
-      return new Promise((resolve) => {
-        resolve(true); // getting the twitterid confirms that the user is authenticated.
-      });
-    });
-  }
-
   public static async LoginAccountViaAuthToken(logger: AppLogger, accountId: string, authToken: string) {
     if (!accountId || !authToken) {
       return {
@@ -357,6 +270,55 @@ export class AccountController {
       response.accountId = accountData.ACCID;
       response.authToken = accountData.AUTHTK;
     }
+
+    return {
+      msg: response,
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async LoginAccountViaTwitterAuth(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+    if (!oauthToken || !oauthVerifier) {
+      return {
+        msg: {
+          error: 'OauthToken or OauthVerifier missing!',
+          errorCode: AccountError.TWITTER_AUTH_PARAMS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    // TODO: Also get access tokens and store them!
+    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
+
+    if (!twitterId) {
+      return {
+        msg: {
+          error: 'Couldn\'t retrieve TwitterId with given tokens!',
+          errorCode: AccountError.TWITTER_AUTH_FAILED
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let accountData = await AccountQuery.GetAccount(logger, true, null, null, twitterId);
+
+    if (!accountData) {
+      const asyncResult = await to(AccountQuery.CreateAccountFromTwitterId(logger, twitterId));
+
+      if (asyncResult.error) {
+        throw asyncResult.error;
+      }
+
+      accountData = asyncResult.result;
+    }
+    const ott = await OneTimeTokenService.GenerateOTT(accountData.ACCID);
+
+    const response = {
+      accountId: accountData.ACCID,
+      authToken: accountData.AUTHTK,
+      oneTimeToken: ott
+    };
 
     return {
       msg: response,
