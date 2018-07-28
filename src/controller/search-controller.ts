@@ -77,13 +77,13 @@ export class SearchController {
     }
     const episodeIds = _.pluck(searchResults, '_id');
 
-    const episodeIdsToGet = new Array<{podcastId: string, releaseTimestamp: number}>();
+    const episodeIdsToGet = new Array<{podcastId: string, index: number}>();
 
     for (const episodeId of episodeIds) {
       const splitEpisodeIdParts = episodeId.split('+');
       episodeIdsToGet.push({
         podcastId: splitEpisodeIdParts[0],
-        releaseTimestamp: parseInt(splitEpisodeIdParts[1], 10)
+        index: parseInt(splitEpisodeIdParts[1], 10)
       });
     }
 
@@ -92,7 +92,7 @@ export class SearchController {
     const sortedEpisodeResults = [];
     for (const searchResult of searchResults) {
       sortedEpisodeResults.push(_.find(getEpisodesAsyncResult, (episode: any) => {
-        const compositeEpisodeKey = episode.PID + '+' + episode.RLSTS;
+        const compositeEpisodeKey = episode.PID + '+' + episode.INDEX;
         return compositeEpisodeKey === searchResult._id;
       }));
     }

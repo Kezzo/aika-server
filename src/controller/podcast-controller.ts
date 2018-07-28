@@ -149,7 +149,7 @@ export class PodcastController {
   }
 
   public static async GetEpisodesFromPodcast(logger: AppLogger, podcastId: string,
-    lastReleaseTimestampString?: string, oldestReleaseTimestampString?: string) {
+    biggestIndexString?: string, smallestIndexString?: string) {
     if (!podcastId) {
       return {
         msg: {
@@ -160,25 +160,25 @@ export class PodcastController {
       };
     }
 
-    let lastReleaseTimestamp;
-    if (lastReleaseTimestampString) {
-      const parsedInt = parseInt(lastReleaseTimestampString, 10);
+    let biggestIndex;
+    if (biggestIndexString) {
+      const parsedInt = parseInt(biggestIndexString, 10);
 
       if (parsedInt && !_.isNaN(parsedInt)) {
-        lastReleaseTimestamp = parsedInt;
+        biggestIndex = parsedInt;
       }
     }
 
-    let oldestReleaseTimestamp;
-    if (oldestReleaseTimestampString) {
-      const parsedInt = parseInt(oldestReleaseTimestampString, 10);
+    let smallestIndex;
+    if (smallestIndexString) {
+      const parsedInt = parseInt(smallestIndexString, 10);
 
       if (parsedInt && !_.isNaN(parsedInt)) {
-        oldestReleaseTimestamp = parsedInt;
+        smallestIndex = parsedInt;
       }
     }
 
-    const episodes = await PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, lastReleaseTimestamp, oldestReleaseTimestamp);
+    const episodes = await PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, biggestIndex, smallestIndex);
     const responseMessage = episodes ? this.GetEpisodeResponseMessage(episodes) : '';
 
     return {
@@ -473,7 +473,7 @@ export class PodcastController {
 
     const sortedSetItemsToAdd = [];
     for (const episodeDatabaseEntry of episodeDatabaseEntries) {
-      sortedSetItemsToAdd.push(episodeDatabaseEntry.RLSTS);
+      sortedSetItemsToAdd.push(episodeDatabaseEntry.INDEX);
       sortedSetItemsToAdd.push(JSON.stringify(episodeDatabaseEntry));
     }
 
@@ -542,8 +542,9 @@ export class PodcastController {
   public static GetEpisodeResponseMessage(episodes: any[]) {
     return _.map(episodes, (episode: any) => {
       return {
-        episodeId: episode.PID + episode.RLSTS,
+        episodeId: episode.PID + episode.INDEX,
         podcastId: episode.PID,
+        index: episode.INDEX,
         name: episode.NAME,
         description: episode.DESC,
         releaseTimestamp: episode.RLSTS,

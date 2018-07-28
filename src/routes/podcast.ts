@@ -134,13 +134,13 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
  * @apiGroup Podcast
  *
- * @apiParam {Number} lastReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released after the timestamp. (to get latest episodes, not cached yet)
- * @apiParam {Number} oldestReleaseTimestamp Optional. UTC-Timestamp. Can be set to only get episodes released before the timestamp. (can be used for pagination)
+ * @apiParam {Number} biggestIndex Optional. Can be set to only get episodes released after the index. (to get latest episodes, not cached yet)
+ * @apiParam {Number} smallestIndex Optional. Can be set to only get episodes released before the index. (can be used for pagination)
  *
  * @apiParamExample {json} Request-Example:
  *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927
- *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?lastReleaseTimestamp=1528639577
- *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?oldestReleaseTimestamp=1528639577
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?biggestIndex=1528639577
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?smallestIndex=1528639577
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -160,10 +160,10 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 router.get('/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.param('podcastId');
-  const lastReleaseTimestamp = req.param('lastReleaseTimestamp');
-  const oldestReleaseTimestamp = req.param('oldestReleaseTimestamp');
+  const biggestIndex = req.param('biggestIndex');
+  const smallestIndex = req.param('smallestIndex');
 
-  PodcastController.GetEpisodesFromPodcast(logger, accountId, lastReleaseTimestamp, oldestReleaseTimestamp)
+  PodcastController.GetEpisodesFromPodcast(logger, accountId, biggestIndex, smallestIndex)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })
@@ -262,17 +262,7 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
  *
  * @apiParamExample {json} Request-Example:
  *     POST /podcast/import/episodes
- *     [
- *       {
- *         AUDURL:"https://rss.art19.com/episodes/c6e40d3e-4046-4aed-8e28-36d8979ee983.mp3"
- *         DESC:"H4sIAAAAAAAACk1Ry47UQAy8I/EP5j4gJFYcODEIdlktixDsBW6ejpOY7baHfhDC1/AtfBnVGa0G5dBdrnKVnb42qrMWkqMWH2RHi1ASqcQxUtFf5CN5y3TQ4Fwqo/ij8dDLwWcvtVB1GrSEVnCdhfZWZ7eVbsRMhpWyVM2SxOBp5s3CBnbEBWFIwRn0p0atKxSwhkum8HTxPJRnf//czWK7zfoU/b0NkxRSKwqvLHRsh6iB+OjRJwW1uYyj5IL04Al5A1d1KzQ6rN2xRm3jSIuDI4bJ4GrT1pn4HlcEP3708F2iKzlUY/a0jfJ+LVWyMm3/YAffGH3pVCI3ulu0gn9ytniX1ejzyljlNawMEVN0OJwlH7/Sl77hqw7eRNZM14lN0XHoSDvo3D6upTDd4kEwjxsHh+ZUPRUvLrrum+I1L1tqg88Q/AY8p33Y/5d2o5mN3opH6MqstS9634udvZUJ7BVrlLWP3+G0oc5eZQ5CnzhnBrmhDbx4+fwfme1z0F4CAAA="
- *         DRTN:4501
- *         LKD:0
- *         NAME:"Courts, Civility, and other C words"
- *         PID:"bb4db974-b94a-42c6-844b-6ca7d3da1de3"
- *         RLSTS:1530220183
- *       }
- *     ]
+ *     {}
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK

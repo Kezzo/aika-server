@@ -86,7 +86,7 @@ export class PodcastQuery {
   }
 
   public static async GetEpisodesOfPodcast(logger: AppLogger, podcastId: string,
-    lastReleaseTimestamp?: number, oldestReleaseTimestamp?: number) {
+    biggestIndex?: number, smallestIndex?: number) {
     if (!podcastId) {
       return null;
     }
@@ -98,12 +98,12 @@ export class PodcastQuery {
     DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, 100, true);
 
     // only one can be set at a time.
-    if (lastReleaseTimestamp) {
-      // Since the release timestamp is never changed this ensures secures non-duplicate pagination.
-      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'RLSTS', lastReleaseTimestamp, '>');
-    } else if (oldestReleaseTimestamp) {
-      // Since the release timestamp is never changed this ensures secures non-duplicate pagination.
-      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'RLSTS', oldestReleaseTimestamp, '<');
+    if (biggestIndex) {
+      // Since the index is never changed this ensures secures non-duplicate pagination.
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'INDEX', biggestIndex, '>');
+    } else if (smallestIndex) {
+      // Since the index is never changed this ensures secures non-duplicate pagination.
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'INDEX', smallestIndex, '<');
     }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));
@@ -115,7 +115,7 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
-  public static async GetEpisodes(logger: AppLogger, episodesIds: Array<{podcastId: string, releaseTimestamp: number}>) {
+  public static async GetEpisodes(logger: AppLogger, episodesIds: Array<{podcastId: string, index: number}>) {
     if (!episodesIds || episodesIds.length <= 0) {
       return null;
     }
@@ -123,7 +123,7 @@ export class PodcastQuery {
     const keys = [];
 
     for (const episodesId of episodesIds) {
-      keys.push({ PID: episodesId.podcastId, RLSTS: episodesId.releaseTimestamp });
+      keys.push({ PID: episodesId.podcastId, INDEX: episodesId.index });
     }
 
     const params = {
