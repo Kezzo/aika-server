@@ -33,6 +33,10 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
   const mail = req.body.mail;
   const password = req.body.password;
 
+  res.statusCode = 404;
+  return res.send();
+
+  /*
   AccountController.CreateAccountFromMail(logger, mail, password)
     .then((accountData) => {
       new Response(res, accountData).Send();
@@ -40,6 +44,7 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
     .catch((error) => {
       new Response(res, null, error).Send();
     });
+  */
 });
 
 /**
@@ -68,6 +73,10 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
   const mail = req.body.mail;
   const password = req.body.password;
 
+  res.statusCode = 404;
+  return res.send();
+
+  /*
   AccountController.LoginAccountViaMail(logger, mail, password)
   .then((accountData) => {
     new Response(res, accountData).Send();
@@ -75,6 +84,7 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
   .catch((error) => {
     new Response(res, null, error).Send();
   });
+  */
 });
 
 /**
@@ -228,6 +238,10 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
   const logger = new AppLogger(req, res);
   const accountId = req.param('accountId');
 
+  res.statusCode = 404;
+  return res.send();
+
+  /*
   AccountController.VerifyAccount(logger, accountId)
   .then((resultData) => {
     new Response(res, resultData).Send();
@@ -235,6 +249,7 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
   .catch((error) => {
     new Response(res, null, error).Send();
   });
+  */
 });
 
 /**
@@ -256,6 +271,10 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
   const logger = new AppLogger(req, res);
   const mail = req.body.mail;
 
+  res.statusCode = 404;
+  return res.send();
+
+  /*
   AccountController.InitiatePasswordReset(logger, mail)
   .then((resultData) => {
     new Response(res, resultData).Send();
@@ -263,6 +282,7 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
   .catch((error) => {
     new Response(res, null, error).Send();
   });
+  */
 });
 
 /**
@@ -289,6 +309,10 @@ router.post('/password/change', function(req: express.Request, res: express.Resp
   const resetToken = req.body.resetToken;
   const newPassword = req.body.newPassword;
 
+  res.statusCode = 404;
+  return res.send();
+
+  /*
   AccountController.CompletePasswordReset(logger, accountId, resetToken, newPassword)
   .then((resultData) => {
     new Response(res, resultData).Send();
@@ -296,6 +320,7 @@ router.post('/password/change', function(req: express.Request, res: express.Resp
   .catch((error) => {
     new Response(res, null, error).Send();
   });
+  */
 });
 
 module.exports = router;
