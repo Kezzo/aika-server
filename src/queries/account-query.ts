@@ -43,7 +43,7 @@ export class AccountQuery {
     return asyncResult.result;
   }
 
-  public static async CreateAccountFromMail(logger: AppLogger, mail: string, passwordHash: string) {
+  public static async CreateAccountFromMail(logger: AppLogger, mail: string, passwordHash?: string) {
     logger.Info('Creating account for user with mail: ' + mail);
     return await this.CreateAccount(logger, mail, passwordHash);
   }
@@ -66,7 +66,10 @@ export class AccountQuery {
 
     if (mail) {
       itemToCreate.MAIL = mail;
-      itemToCreate.PWHASH = passwordHash;
+
+      if (passwordHash) {
+        itemToCreate.PWHASH = passwordHash;
+      }
     } else if (twitterId) {
       itemToCreate.TWITID = twitterId;
     } else {

@@ -13,6 +13,7 @@ import { AsyncResult } from '../utility/to';
 import { AccountError } from '../error-codes/account-error';
 import { MailService } from '../common/mail-service';
 import { TwitterService } from '../platforms/twitter-service';
+import { CacheAccess } from '../common/cache-access';
 
 export class AccountController {
   public static async CreateAccountFromMail(logger: AppLogger, mail: string, password: string) {
@@ -57,7 +58,7 @@ export class AccountController {
     }
 
     const verificationMailResult = await to(MailService.SendVerificationMail(
-      mail, asyncResult.result.ACCID));
+      logger, mail, asyncResult.result.ACCID));
 
     if (verificationMailResult.error) {
       throw verificationMailResult.error;
@@ -151,7 +152,7 @@ export class AccountController {
       return {
         msg: {
           error: '<p> Account to verify doesn\'t exist!</p>',
-          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+          errorCode: AccountError.ACCOUNT_DOESNT_EXIST
         },
         statusCode: httpStatus.BAD_REQUEST
       };
@@ -177,6 +178,95 @@ export class AccountController {
     return await this.LoginAccount(logger, null, mail, null, true, (accountData) => {
       return bcrypt.compare(password, accountData.PWHASH);
     });
+  }
+
+  public static async SendMagicLink(logger: AppLogger, mail: string) {
+    if (!isMail(mail)) {
+      return {
+        msg: {
+          error: 'Mail has invalid format!',
+          errorCode: AccountError.INVALID_MAIL_FORMAT
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let accountData = await AccountQuery.GetAccount(logger, false, null, mail);
+
+    if (!accountData) {
+      const asyncResult = await to(AccountQuery.CreateAccountFromMail(logger, mail));
+
+      if (asyncResult.error) {
+        throw asyncResult.error;
+      }
+
+      accountData = asyncResult.result;
+    }
+
+    const loginToken = uuidv4();
+    const setResult = await to(CacheAccess.Set('ONE-TIME-LOGIN-' + accountData.ACCID, loginToken, 900));
+
+    if (!_.isNull(setResult.error)) {
+      throw setResult.error;
+    }
+
+    const sendMagicLinkMailResult = await to(MailService.SendMagicLoginLink(
+      logger, mail, loginToken));
+
+    if (sendMagicLinkMailResult.error) {
+      throw sendMagicLinkMailResult.error;
+    }
+
+    return {
+      msg: {},
+      statusCode: httpStatus.CREATED
+    };
+  }
+
+  public static async LoginAccountViaMagicLink(logger: AppLogger, mail: string, loginToken: string) {
+    if (!mail || !loginToken) {
+      return {
+        msg: {
+          error: 'Login via magic link requires mail and logintoken!',
+          errorCode: AccountError.LOGIN_DETAILS_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const loginResult = await this.LoginAccount(logger, null, mail, null, true, (accountData) => {
+      return this.IsLoginTokenValid(logger, accountData.ACCID, loginToken);
+    });
+
+    if (loginResult.statusCode === httpStatus.OK && loginResult.msg && loginResult.msg.accountId) {
+      const accountId = loginResult.msg.accountId;
+
+      const updateSuccesful = await AccountQuery.UpdateAccount(logger, accountId, {
+        VERF: true
+      });
+
+      if (!updateSuccesful) {
+        logger.Error('Account update unsuccessful!');
+      }
+
+      const deleteAsyncResult = await to(CacheAccess.Delete('ONE-TIME-LOGIN-' + accountId));
+
+      if (deleteAsyncResult.error) {
+        logger.Error(deleteAsyncResult.error);
+      }
+    }
+
+    return loginResult;
+  }
+
+  private static async IsLoginTokenValid(logger: AppLogger, accountId, loginToken: string) {
+    const getAsyncResult = await to(CacheAccess.Get('ONE-TIME-LOGIN-' + accountId));
+
+    if (getAsyncResult.error) {
+      throw JSON.stringify(getAsyncResult.error);
+    }
+
+    return getAsyncResult.result && getAsyncResult.result === loginToken;
   }
 
   public static async LoginAccountViaTwitter(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
@@ -235,7 +325,7 @@ export class AccountController {
       return {
         msg: {
           error: 'Account doesn\'t exist!',
-          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+          errorCode: AccountError.ACCOUNT_DOESNT_EXIST
         },
         statusCode: httpStatus.BAD_REQUEST
       };
@@ -291,7 +381,7 @@ export class AccountController {
       return {
         msg: {
           error: 'Account doesn\'t exists!',
-          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+          errorCode: AccountError.ACCOUNT_DOESNT_EXIST
         },
         statusCode: httpStatus.BAD_REQUEST
       };
@@ -304,14 +394,14 @@ export class AccountController {
     }
 
     const resetPasswordMailResult = await to(MailService.SendResetPasswordMail(
-      mail, accountData.ACCID, resetToken));
+      logger, mail, accountData.ACCID, resetToken));
 
     if (resetPasswordMailResult.error) {
       throw resetPasswordMailResult.error;
     }
 
     return {
-      msg: '',
+      msg: {},
       statusCode: httpStatus.OK
     };
   }
@@ -356,7 +446,7 @@ export class AccountController {
       return {
         msg: {
           error: 'Account doesn\'t exists!',
-          errorCode: AccountError.ACCOUNT_DOESNT_EXISTS
+          errorCode: AccountError.ACCOUNT_DOESNT_EXIST
         },
         statusCode: httpStatus.BAD_REQUEST
       };

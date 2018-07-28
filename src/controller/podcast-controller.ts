@@ -81,7 +81,7 @@ export class PodcastController {
     // Account doesn't follow podcasts.
     if (!followedPodcasts || followedPodcasts.length === 0) {
       return {
-        msg: '',
+        msg: {},
         statusCode: httpStatus.OK
       };
     }
@@ -455,7 +455,7 @@ export class PodcastController {
     logger.Info('Successfully start episode import: ' + JSON.stringify(startEpisodeImportAsyncResult.result));
 
     return {
-      msg: '',
+      msg: {},
       statusCode: httpStatus.OK
     };
   }

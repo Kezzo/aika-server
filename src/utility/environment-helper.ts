@@ -4,7 +4,7 @@ export class EnvironmentHelper {
   public static GetServerUrl() {
     switch (EnvironmentHelper.GetEnvironment()) {
     case Environment.DEV:
-      return 'https://dev.aika.cloud.tinkrinc.co:443';
+      return 'https://dev.aika.cloud.tinkrinc.co';
     case Environment.LOCAL:
       return 'http://localhost:3075';
     }

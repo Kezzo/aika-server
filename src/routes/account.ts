@@ -113,6 +113,70 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
 });
 
 /**
+ * @api {post} /account/send/magiclink /send/magiclink
+ * @apiName /account/send/magiclink
+ * @apiDescription Sends a magic login link to the user's inbox.
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     POST /account/send/magiclink
+ *     {
+ *       "mail" : "test@domain.zxc"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 201 CREATED
+ *     {}
+ */
+router.post('/send/magiclink', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const mail = req.body.mail;
+
+  AccountController.SendMagicLink(logger, mail)
+  .then((accountData) => {
+    new Response(res, accountData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
+/**
+ * @api {post} /account/login/magiclink /login/magiclink
+ * @apiName /account/login/magiclink
+ * @apiDescription Login to user account with a magiclink payload.
+ * @apiGroup Account
+ *
+ * @apiParamExample {json} Request-Example:
+ *     POST /account/login/magiclink
+ *     {
+ *       "mail" : "test@domain.zxc",
+ *       "loginToken" : "b31f3956-diwq-4dc4-857e-ff1169d7de4f"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
+ *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *     }
+ */
+router.post('/login/magiclink', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const mail = req.body.mail;
+  const loginToken = req.body.loginToken;
+
+  AccountController.LoginAccountViaMagicLink(logger, mail, loginToken)
+  .then((accountData) => {
+    new Response(res, accountData).Send();
+  })
+  .catch((error) => {
+    new Response(res, null, error).Send();
+  });
+});
+
+/**
  * @api {post} /account/login/twitter /login/twitter
  * @apiName /account/login/twitter
  * @apiDescription Login to user account with twitter oauth tokens.
