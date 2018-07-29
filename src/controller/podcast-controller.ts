@@ -490,13 +490,15 @@ export class PodcastController {
       logger.Warn('Only ' + addEpsiodeEntriesToCacheAsyncResult.result + ' from existing ' + episodeDatabaseEntries.length + ' episodes were added to the cache');
     }
 
-    const startEpisodeImportAsyncResult = await to(PodcastTasks.StartEpisodeImport(logger, podcastId));
+    if (isLastRequest) {
+      const startEpisodeImportAsyncResult = await to(PodcastTasks.StartEpisodeImport(logger, podcastId));
 
-    if (startEpisodeImportAsyncResult.error) {
-      throw startEpisodeImportAsyncResult.error;
+      if (startEpisodeImportAsyncResult.error) {
+        throw startEpisodeImportAsyncResult.error;
+      }
+
+      logger.Info('Successfully start episode import: ' + JSON.stringify(startEpisodeImportAsyncResult.result));
     }
-
-    logger.Info('Successfully start episode import: ' + JSON.stringify(startEpisodeImportAsyncResult.result));
 
     return {
       msg: {},
