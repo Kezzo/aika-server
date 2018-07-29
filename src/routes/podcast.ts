@@ -273,9 +273,10 @@ router.post('/import/episodes', function(req: express.Request, res: express.Resp
   const podcastId = req.get('x-podcast-id');
   const taskToken = req.get('x-task-token');
   const updateToken = req.get('x-update-token');
+  const isLastRequest = req.get('x-is-last-request');
   const episodeDatabaseEntries = req.body;
 
-  PodcastController.StartEpisodeImport(logger, podcastId, taskToken, updateToken, episodeDatabaseEntries)
+  PodcastController.StartEpisodeImport(logger, podcastId, taskToken, updateToken, episodeDatabaseEntries, isLastRequest)
     .then((accountData) => {
       new Response(res, accountData).Send();
     })

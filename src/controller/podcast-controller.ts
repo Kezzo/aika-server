@@ -417,7 +417,7 @@ export class PodcastController {
   }
 
   public static async StartEpisodeImport(logger: AppLogger, podcastId: string,
-    taskToken: string, updateToken: string, episodeDatabaseEntries: any[]) {
+    taskToken: string, updateToken: string, episodeDatabaseEntries: any[], isLastRequest: string) {
 
     if (!podcastId || (!taskToken && !updateToken) || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
       return {
@@ -454,21 +454,23 @@ export class PodcastController {
       };
     }
 
-    const removeImportTokenAsyncResult = await to(CacheAccess.Delete(tokenKey));
+    if (isLastRequest) {
+      const removeImportTokenAsyncResult = await to(CacheAccess.Delete(tokenKey));
 
-    if (removeImportTokenAsyncResult.error) {
-      throw removeImportTokenAsyncResult.error;
-    }
+      if (removeImportTokenAsyncResult.error) {
+        throw removeImportTokenAsyncResult.error;
+      }
 
-    // token was already consumed.
-    if (removeImportTokenAsyncResult.result === 0) {
-      return {
-        msg: {
-          error: 'The episode import token is invalid!',
-          errorCode: PodcastError.EPISODE_IMPORT_TOKEN_INVALID
-        },
-        statusCode: httpStatus.BAD_REQUEST
-      };
+      // token was already consumed.
+      if (removeImportTokenAsyncResult.result === 0) {
+        return {
+          msg: {
+            error: 'The episode import token is invalid!',
+            errorCode: PodcastError.EPISODE_IMPORT_TOKEN_INVALID
+          },
+          statusCode: httpStatus.BAD_REQUEST
+        };
+      }
     }
 
     const sortedSetItemsToAdd = [];
