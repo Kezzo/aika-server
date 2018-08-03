@@ -15,8 +15,8 @@ export class AccessLogger {
     this.RequestLogger = morgan(function(tokens: TokenIndexer,
       req: express.Request, res: express.Response) {
 
-      const body = Object.assign({}, req.body, { password: 'X' });
-      if (!_.isUndefined(body.password)) {
+      const body = Object.assign({}, req.body);
+      if (body.password) {
         body.password = 'X';
       }
 
@@ -26,8 +26,8 @@ export class AccessLogger {
         httpMethod: tokens.method(req, res),
         endpoint: tokens.url(req, res),
         urid: res.get('X-Amzn-Trace-Id'),
-        headers: req.headers,
-        requestBody: body,
+        headers: JSON.stringify(req.headers),
+        requestBody: JSON.stringify(body),
         type: 'request'
       };
 
