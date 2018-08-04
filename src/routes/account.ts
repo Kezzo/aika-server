@@ -108,8 +108,8 @@ router.post('/send/magiclink', function(req: express.Request, res: express.Respo
   const mail = req.body.mail;
 
   AccountController.SendMagicLink(logger, mail)
-  .then((accountData) => {
-    new Response(res, accountData).Send();
+  .then((magicLinkSentResult) => {
+    new Response(res, magicLinkSentResult).Send();
   })
   .catch((error) => {
     new Response(res, null, error).Send();
@@ -211,8 +211,8 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
   const authToken = req.body.authToken;
 
   AccountController.LoginAccountViaAuthToken(logger, accountId, authToken)
-  .then((accountData) => {
-    new Response(res, accountData).Send();
+  .then((loginData) => {
+    new Response(res, loginData).Send();
   })
   .catch((error) => {
     new Response(res, null, error).Send();

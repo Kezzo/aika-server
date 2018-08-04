@@ -244,4 +244,42 @@ export class PodcastQuery {
       return entry.PutRequest.Item;
     })));
   }
+
+  public static async GetPodcastFollowEntry(logger: AppLogger, accountId: string, podcastId: string) {
+    const params: any = {
+      TableName: 'FLWDPODCASTS'
+    };
+
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, 'ACCID-PID', false, 1);
+    DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'PID', podcastId, '=');
+
+    const getPodcastFollowEntryAsyncResult = await to(DatabaseAccess.Query(logger, params));
+
+    if (getPodcastFollowEntryAsyncResult.error) {
+      throw getPodcastFollowEntryAsyncResult.error;
+    }
+
+    if (!getPodcastFollowEntryAsyncResult.result || !_.isArray(getPodcastFollowEntryAsyncResult.result) ||
+      !getPodcastFollowEntryAsyncResult.result[0]) {
+      return null;
+    }
+
+    return getPodcastFollowEntryAsyncResult.result[0];
+  }
+
+  public static async RemovePodcastFollowEntry(logger: AppLogger, accountId: string, followTimestamp: number) {
+    const deleteParams: any = {
+      TableName: 'FLWDPODCASTS',
+      Key: {
+        ACCID: accountId,
+        FLWTS: followTimestamp
+      }
+    };
+
+    const deletePodcastFollowEntryAsyncResult = await to(DatabaseAccess.Delete(logger, deleteParams));
+
+    if (deletePodcastFollowEntryAsyncResult.error) {
+      throw deletePodcastFollowEntryAsyncResult.error;
+    }
+  }
 }

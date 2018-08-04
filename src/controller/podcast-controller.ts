@@ -83,6 +83,47 @@ export class PodcastController {
     };
   }
 
+  public static async UnfollowPodcast(logger: AppLogger, accountId: string, podcastId: string) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: PodcastError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (!podcastId) {
+      return {
+        msg: {
+          error: 'Podcast id is missing!',
+          errorCode: PodcastError.PODCAST_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const podcastFollowEntry = await PodcastQuery.GetPodcastFollowEntry(logger, accountId, podcastId);
+
+    if (!podcastFollowEntry) {
+      return {
+        msg: {
+          error: 'Podcast follow entry wasn\'t found!',
+          errorCode: PodcastError.PODCAST_FOLLOW_ENTRY_NOT_FOUND
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    await PodcastQuery.RemovePodcastFollowEntry(logger, podcastFollowEntry.ACCID, podcastFollowEntry.FLWTS);
+
+    return {
+      msg: {},
+      statusCode: httpStatus.OK
+    };
+  }
+
   public static async GetFollowedPodcasts(logger: AppLogger, accountId: string, nextToken?: string) {
 
     if (!accountId) {

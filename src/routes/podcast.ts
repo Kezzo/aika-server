@@ -70,8 +70,41 @@ router.post('/follow', function(req: express.Request, res: express.Response, nex
   const podcastId = req.body.podcastId;
 
   PodcastController.FollowPodcast(logger, accountId, podcastId)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((followPodcastResult) => {
+      new Response(res, followPodcastResult).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {post} /podcast/unfollow /unfollow
+ * @apiName /podcast/unfollow
+ * @apiDescription Unfollow the given podcast with the given podcastId.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     POST /podcast/unfollow
+ *     Headers: [
+ *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *     ]
+ *     {
+ *        "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927"
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {}
+ */
+router.post('/unfollow', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.get('x-account-id');
+  const podcastId = req.body.podcastId;
+
+  PodcastController.UnfollowPodcast(logger, accountId, podcastId)
+    .then((unfollowPodcastResult) => {
+      new Response(res, unfollowPodcastResult).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -120,8 +153,8 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
   const nextToken = req.param('next');
 
   PodcastController.GetFollowedPodcasts(logger, accountId, nextToken)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((followedPodcastsData) => {
+      new Response(res, followedPodcastsData).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -164,8 +197,8 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
   const smallestIndex = req.param('smallestIndex');
 
   PodcastController.GetEpisodesFromPodcast(logger, accountId, biggestIndex, smallestIndex)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((episodesData) => {
+      new Response(res, episodesData).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -205,8 +238,8 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
   const podcastSourceIds = req.body.podcastSourceIds;
 
   PodcastController.StartPodcastImportForAccount(logger, accountId, podcastSourceIds)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((podcastImportStartResult) => {
+      new Response(res, podcastImportStartResult).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -246,8 +279,8 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
   const podcastSourceIds = req.body.podcastSourceIds;
 
   PodcastController.StartRawPodcastImport(logger, importSecret, podcastSourceIds)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((rawPodcastImportStartResult) => {
+      new Response(res, rawPodcastImportStartResult).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -277,8 +310,8 @@ router.post('/import/episodes', function(req: express.Request, res: express.Resp
   const episodeDatabaseEntries = req.body;
 
   PodcastController.StartEpisodeImport(logger, podcastId, taskToken, updateToken, episodeDatabaseEntries, isLastRequest)
-    .then((accountData) => {
-      new Response(res, accountData).Send();
+    .then((episodeImportStartResult) => {
+      new Response(res, episodeImportStartResult).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
