@@ -124,6 +124,62 @@ export class CacheAccess {
     });
   }
 
+  public static async AddItemsToList(key: string, itemsToAdd: string[]) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.RPUSH(key, itemsToAdd, (error, success) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(success);
+      });
+    });
+  }
+
+  public static async PopFromStartOfList(key: string, count: number) {
+    return new Promise((resolve, reject) => {
+
+      const commandsToExecture = [];
+
+      for (let index = 0; index < count; index++) {
+        const commands = ['LPOP', key];
+        commandsToExecture.push(commands);
+      }
+
+      this.redisClient.BATCH(commandsToExecture).exec((error, results) => {
+        if (error) {
+          return reject (error);
+        }
+
+        return resolve(results);
+      });
+    });
+  }
+
+  public static async GetTimeToLive(key: string) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.TTL(key, (error, success) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(success);
+      });
+    });
+  }
+
+  public static async SetTimeToLive(key: string, timeToLife: number) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.EXPIRE(key, timeToLife, (error, success) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(success);
+      });
+    });
+  }
+
   public static async Delete(...keys: string[]) {
     return new Promise((resolve, reject) => {
       this.redisClient.DEL(keys, (error, success) => {

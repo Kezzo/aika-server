@@ -86,7 +86,7 @@ export class PodcastQuery {
   }
 
   public static async GetEpisodesOfPodcast(logger: AppLogger, podcastId: string,
-    biggestIndex?: number, smallestIndex?: number) {
+    biggestIndex?: number, smallestIndex?: number, count?: number) {
     if (!podcastId) {
       return null;
     }
@@ -95,7 +95,7 @@ export class PodcastQuery {
       TableName: 'EPISODES'
     };
 
-    DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, 100, true);
+    DatabaseAccess.AddQueryParams(params, 'PID', podcastId, null, false, count, true);
 
     // only one can be set at a time.
     if (biggestIndex) {
@@ -143,18 +143,23 @@ export class PodcastQuery {
     return asyncResult.result.EPISODES;
   }
 
-  public static async GetFollowedPodcastEntries(logger: AppLogger, accountId: string, lastFollowTimestamp?: number) {
+  public static async GetFollowedPodcastEntries(logger: AppLogger, accountId: string,
+    oldestFollowTimestamp?: number, count?: number) {
 
     const params: any = {
       TableName: 'FLWDPODCASTS'
     };
 
-    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, null, false, 100);
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, null, false, 100, true);
 
-    if (lastFollowTimestamp) {
+    if (oldestFollowTimestamp) {
       // Since the followtimestamp is never changed (re-follow is new entry with new ts)
       // this ensures secures non-duplicate pagination.
-      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', lastFollowTimestamp, '>');
+      DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', oldestFollowTimestamp, '<');
+    }
+
+    if (count) {
+      params.Limit = count;
     }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));

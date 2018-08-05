@@ -162,6 +162,54 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 });
 
 /**
+ * @api {get} /podcast/followed/episode/feed /followed/episode/feed
+ * @apiName /followed/episode/feed
+ * @apiDescription Gets the latest released episodes of the podcasts a user follows.
+ * @apiGroup Podcast
+ *
+ * @apiParam {String} next Optional. Can be set get the next page of results.
+ *
+ * @apiParamExample {json} Request-Example:
+ *     GET /followed/episode/feed
+ *     GET /followed/episode/feed?next=e30=
+ *     Headers: [
+ *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *     ]
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *        "result": [
+ *          {
+ *            "episodeId": "9f80db8d-6ba9-4e8c-8128-5779e74aa314204",
+ *            "podcastId": "9f80db8d-6ba9-4e8c-8128-5779e74aa314",
+ *            "index": 204,
+ *            "name": "Andy Warhol - Pop Art für Schallplatten",
+ *            "description": "Andy Warhols Werke der Popart sind heute millionenschwere Objekte auf internationalen Auktionen. Es gibt aber auch kostengünstige Arbeiten von Warhol, die sich jeder leisten kann: Cover von Langspielplatten. - AutorIn: Albert Wiedenhöfer",
+ *            "releaseTimestamp": 1533542747,
+ *            "duration": 1140,
+ *            "audioUrl": "https://wdrmedien-a.akamaihd.net/medp/podcast/weltweit/fsk0/170/1705437/wdr5neugiergenuegtdasfeature_2018-08-06_andywarholpopartfuerschallplatten_wdr5.mp3"
+ *          }
+ *        ],
+ *        "nextToken": "e30=",
+ *        "isFirstPage": true
+ *     }
+ */
+router.get('/followed/episode/feed', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.get('x-account-id');
+  const nextToken = req.param('next');
+
+  PodcastController.GetFollowedPodcastFeed(logger, accountId, nextToken)
+    .then((followedPodcastsData) => {
+      new Response(res, followedPodcastsData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
  * @api {get} /podcast/episodes?podcastId /episodes?podcastId
  * @apiName /podcast/episodes?podcastId
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
@@ -172,21 +220,21 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  *
  * @apiParamExample {json} Request-Example:
  *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927
- *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?biggestIndex=1528639577
- *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?smallestIndex=1528639577
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?biggestIndex=5
+ *     GET /podcast/episodes?podcastId=c2a145ce-c568-485d-91da-fdeaf2357927?smallestIndex=1
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     [
  *       {
- *          "episodeId": "c2a145ce-c568-485d-91da-fdeaf23579271528639577",
+ *          "episodeId": "c2a145ce-c568-485d-91da-fdeaf23579275",
+ *          "index": 5
  *          "podcastId": "c2a145ce-c568-485d-91da-fdeaf2357927",
  *          "name": "The best Episode 2",
  *          "description": "This is just a tribute too",
  *          "releaseTimestamp": 1528639577,
  *          "duration": "01:14:33",
- *          "audioUrl": "https://9to5mac.files.wordpress.com/2018/06/9to5mac-happy-hour-06-08-2018.mp3",
- *          "likedCount": 2448
+ *          "audioUrl": "https://9to5mac.files.wordpress.com/2018/06/9to5mac-happy-hour-06-08-2018.mp3"
  *       }
  *    ]
  */

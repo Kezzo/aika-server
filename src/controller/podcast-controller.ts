@@ -136,18 +136,18 @@ export class PodcastController {
       };
     }
 
-    let lastFollowTimestamp;
+    let oldestFollowTimestamp;
     if (nextToken) {
       const decodedToken = Buffer.from(nextToken, 'base64').toString('utf8');
       const parsedInt = parseInt(decodedToken, 10);
 
       if (parsedInt && !_.isNaN(parsedInt)) {
-        lastFollowTimestamp = parsedInt;
+        oldestFollowTimestamp = parsedInt;
       }
     }
 
     const followedPodcasts = await PodcastQuery.GetFollowedPodcastEntries(
-      logger, accountId, lastFollowTimestamp);
+      logger, accountId, oldestFollowTimestamp);
 
     // Account doesn't follow podcasts.
     if (!followedPodcasts || followedPodcasts.length === 0) {
@@ -159,8 +159,8 @@ export class PodcastController {
       };
     }
 
-    const oldestFollowTimestamp = followedPodcasts[followedPodcasts.length - 1].FLWTS;
-    const nextNextToken = Buffer.from(oldestFollowTimestamp.toString()).toString('base64');
+    const nextOldestFollowTimestamp = followedPodcasts[followedPodcasts.length - 1].FLWTS;
+    const nextNextToken = Buffer.from(nextOldestFollowTimestamp.toString()).toString('base64');
 
     for (const followedPodcast of followedPodcasts) {
       followedPodcast.FLWTS = Math.trunc(followedPodcast.FLWTS / 100000);
@@ -184,6 +184,151 @@ export class PodcastController {
       msg: {
         result: responseMessage,
         nextToken: nextNextToken
+      },
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async GetFollowedPodcastFeed(logger: AppLogger, accountId: string, nextToken: string) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: PodcastError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const podcastFeedCacheKey = 'NEW_EPISODES_FEED_' + accountId;
+    let timeToLiveForList = 86400;
+
+    if (!nextToken) {
+      await CacheAccess.Delete(podcastFeedCacheKey);
+    } else {
+      const getTimeToLiveAsyncResult = await to(CacheAccess.GetTimeToLive(podcastFeedCacheKey));
+
+      if (getTimeToLiveAsyncResult.error) {
+        throw getTimeToLiveAsyncResult.error;
+      }
+
+      // cache entry not existant or too old.
+      if (getTimeToLiveAsyncResult.result === -1 || getTimeToLiveAsyncResult.result === -2 ||
+        getTimeToLiveAsyncResult.result < 10) {
+        nextToken = null;
+      } else {
+        timeToLiveForList = getTimeToLiveAsyncResult.result;
+      }
+    }
+
+    const entriesPerPage = 20;
+    let decodedToken: any = {};
+    if (nextToken) {
+      decodedToken = JSON.parse(Buffer.from(nextToken, 'base64').toString('utf8'));
+    }
+
+    let followEntries = [];
+
+    if (!nextToken || (nextToken && decodedToken.oldestFollowTimestamp)) {
+      followEntries = await PodcastQuery.GetFollowedPodcastEntries(logger, accountId,
+        decodedToken.oldestFollowTimestamp, entriesPerPage);
+    }
+
+    const entriesToGetFromCache = entriesPerPage - followEntries.length;
+    let episodesFromCache: any = [];
+
+    if (nextToken && entriesToGetFromCache > 0) {
+      const popAsyncResult = await to(CacheAccess.PopFromStartOfList(podcastFeedCacheKey, entriesToGetFromCache));
+
+      if (popAsyncResult.error) {
+        throw popAsyncResult.error;
+      }
+
+      episodesFromCache = _.map(popAsyncResult.result, (entry: string) => {
+        return entry ? JSON.parse(entry) : null;
+      });
+
+      episodesFromCache = _.compact(episodesFromCache);
+    }
+
+    if (followEntries.length === 0 && episodesFromCache.length === 0) {
+      return {
+        msg: {},
+        statusCode: httpStatus.OK
+      };
+    }
+
+    const episodesPerPodcast = Math.max(1, Math.round(entriesPerPage / (followEntries.length + episodesFromCache.length)));
+
+    let nextNextToken: any = {};
+
+    if (followEntries.length === entriesPerPage) {
+      nextNextToken.oldestFollowTimestamp = followEntries[followEntries.length - 1].FLWTS;
+    }
+
+    const getEpisodesPromises = [];
+
+    for (const followEntry of followEntries) {
+      getEpisodesPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger,
+        followEntry.PID, null, Number.MAX_SAFE_INTEGER, episodesPerPodcast));
+    }
+
+    for (const episodeFromCache of episodesFromCache) {
+      getEpisodesPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger,
+        episodeFromCache.PID, null, episodeFromCache.INDEX, episodesPerPodcast));
+    }
+
+    const episodeAsyncResults = await Promise.all(getEpisodesPromises);
+
+    let episodes = [];
+    const episodesToAddToCache = [];
+
+    for (const episodeAsyncResult of episodeAsyncResults) {
+
+      const oldestEpisode = episodeAsyncResult[episodeAsyncResult.length - 1];
+
+      if (oldestEpisode.INDEX > 0) {
+        episodesToAddToCache.push(JSON.stringify({
+          PID: oldestEpisode.PID,
+          INDEX: oldestEpisode.INDEX
+        }));
+      }
+
+      episodes.push(...episodeAsyncResult);
+    }
+
+    if (episodesToAddToCache.length > 0) {
+      const addToListAsyncResult = await to(CacheAccess.AddItemsToList(podcastFeedCacheKey, episodesToAddToCache));
+
+      if (addToListAsyncResult.error) {
+        throw addToListAsyncResult.error;
+      }
+
+      // we have to do it every request, because list could've been empty and therefore removed and lost its TTL.
+      const setTimeToLiveAsyncResult = await to(CacheAccess.SetTimeToLive(podcastFeedCacheKey, timeToLiveForList));
+
+      if (setTimeToLiveAsyncResult.error) {
+        throw setTimeToLiveAsyncResult.error;
+      }
+
+    } else {
+      // returned all episodes of all followed podcasts
+      nextNextToken = null;
+    }
+
+    // sort descending
+    episodes = _.sortBy(episodes, (episode) => {
+      return -episode.RLSTS;
+    });
+
+    const responseMessage = episodes ? this.GetEpisodeResponseMessage(episodes) : [];
+    const nextTokenString = nextNextToken ? Buffer.from(JSON.stringify(nextNextToken)).toString('base64') : null;
+
+    return {
+      msg: {
+        result: responseMessage,
+        nextToken: nextTokenString,
+        isFirstPage: nextToken ? false : true
       },
       statusCode: httpStatus.OK
     };
@@ -219,8 +364,9 @@ export class PodcastController {
       }
     }
 
-    const episodes = await PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, biggestIndex, smallestIndex);
-    const responseMessage = episodes ? this.GetEpisodeResponseMessage(episodes) : '';
+    const episodes = await PodcastQuery.GetEpisodesOfPodcast(logger,
+      podcastId, biggestIndex, smallestIndex, 100);
+    const responseMessage = episodes ? this.GetEpisodeResponseMessage(episodes) : [];
 
     return {
       msg: responseMessage,
