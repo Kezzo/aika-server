@@ -167,6 +167,11 @@ export class DatabaseAccess {
 
     params.ExpressionAttributeNames['#sortKey'] = sortKeyName;
     params.ExpressionAttributeValues[':sortValue'] = sortKeyConditionValue;
-    params.KeyConditionExpression += ' and #sortKey ' + condition + ' :sortValue';
+
+    if (condition === 'begins_with') {
+      params.KeyConditionExpression += ' and begins_with(#sortKey, :sortValue)';
+    } else {
+      params.KeyConditionExpression += ' and #sortKey ' + condition + ' :sortValue';
+    }
   }
 }

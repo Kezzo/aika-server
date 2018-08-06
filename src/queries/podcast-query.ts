@@ -150,16 +150,12 @@ export class PodcastQuery {
       TableName: 'FLWDPODCASTS'
     };
 
-    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, null, false, 100, true);
+    DatabaseAccess.AddQueryParams(params, 'ACCID', accountId, null, false, count, true);
 
     if (oldestFollowTimestamp) {
       // Since the followtimestamp is never changed (re-follow is new entry with new ts)
       // this ensures secures non-duplicate pagination.
       DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'FLWTS', oldestFollowTimestamp, '<');
-    }
-
-    if (count) {
-      params.Limit = count;
     }
 
     const asyncResult = await to(DatabaseAccess.Query(logger, params));
