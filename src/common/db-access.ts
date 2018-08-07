@@ -92,7 +92,7 @@ export class DatabaseAccess {
     });
   }
 
-  public static async Query(logger: AppLogger, params: QueryInput) {
+  public static async Query(logger: AppLogger, params: QueryInput, includeLastEvaluatedKey?: boolean) {
     logger.Info('DB Query: ' + JSON.stringify(params));
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
@@ -100,6 +100,13 @@ export class DatabaseAccess {
         logger.Info('DB Query data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
+        }
+
+        if (includeLastEvaluatedKey) {
+          return resolve({
+            Items: data.Items,
+            LastEvaluatedKey: data.LastEvaluatedKey
+          });
         }
 
         return resolve(data.Items);

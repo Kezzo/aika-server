@@ -115,6 +115,102 @@ export class ClipController {
     };
   }
 
+  public static async GetClipsCreatedByUser(logger: AppLogger, accountId: string, nextToken: string) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: ClipError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let oldestFollowTimestamp;
+    if (nextToken) {
+      const decodedToken = Buffer.from(nextToken, 'base64').toString('utf8');
+      const parsedInt = parseInt(decodedToken, 10);
+
+      if (parsedInt && !_.isNaN(parsedInt)) {
+        oldestFollowTimestamp = parsedInt;
+      }
+    }
+
+    const pageSize = 5;
+    const clipsFromUser = await ClipQuery.GetClipsFromUser(logger, accountId, oldestFollowTimestamp, pageSize);
+
+    let nextNextToken = null;
+
+    if (clipsFromUser && _.isArray(clipsFromUser) && clipsFromUser.length === pageSize) {
+      const nextOldestClipTimestamp = clipsFromUser[clipsFromUser.length - 1].CLPTS;
+      nextNextToken = Buffer.from(nextOldestClipTimestamp.toString()).toString('base64');
+    }
+
+    const responseMessage = _.map(clipsFromUser, (clip) => {
+      return this.CreateClipResonseMessage(clip);
+    });
+
+    return {
+      msg: {
+        result: responseMessage,
+        nextToken: nextNextToken
+      },
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async GetClipsOfEpisodeCreatedByUser(logger: AppLogger,
+    accountId: string, episodeId: string, nextToken: string) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: ClipError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (!episodeId) {
+      return {
+        msg: {
+          error: 'Episode is missing!',
+          errorCode: ClipError.EPISODE_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let lastLastEvaluatedKey;
+    if (nextToken) {
+      lastLastEvaluatedKey = JSON.parse(Buffer.from(nextToken, 'base64').toString('utf8'));
+    }
+
+    const pageSize = 5;
+    const getEpisodeClipsFromUserResult = await ClipQuery.GetEpisodeClipsFromUser(
+      logger, accountId, episodeId, pageSize, lastLastEvaluatedKey, true);
+
+    const clipsOfEpisode = getEpisodeClipsFromUserResult.Items;
+
+    let nextNextToken = null;
+
+    if (getEpisodeClipsFromUserResult && getEpisodeClipsFromUserResult.LastEvaluatedKey) {
+      nextNextToken = Buffer.from(JSON.stringify(getEpisodeClipsFromUserResult.LastEvaluatedKey)).toString('base64');
+    }
+
+    const responseMessage = _.map(clipsOfEpisode, (clip) => {
+      return this.CreateClipResonseMessage(clip);
+    });
+
+    return {
+      msg: {
+        result: responseMessage,
+        nextToken: nextNextToken
+      },
+      statusCode: httpStatus.OK
+    };
+  }
+
   private static CreateClipResonseMessage(clipDatabaseObject: any) {
     return {
       clipId: clipDatabaseObject.EID + clipDatabaseObject.ACCIDX,

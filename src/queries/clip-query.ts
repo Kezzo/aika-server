@@ -41,7 +41,7 @@ export class ClipQuery {
   }
 
   public static async GetEpisodeClipsFromUser(logger: AppLogger, accountId: string,
-    episodeId: string, count?: number) {
+    episodeId: string, count?: number, lastEvaluatedKeyToUse?: string, includeLastEvaluatedKey?: boolean) {
     const params: any = {
       TableName: 'CLIPS'
     };
@@ -49,7 +49,11 @@ export class ClipQuery {
     DatabaseAccess.AddQueryParams(params, 'EID', episodeId, null, false, count, true);
     DatabaseAccess.AddQuerySecondaryKeyCondition(params, 'ACCIDX', accountId, 'begins_with');
 
-    const getClipsAsyncResult = await to(DatabaseAccess.Query(logger, params));
+    if (lastEvaluatedKeyToUse) {
+      params.ExclusiveStartKey = lastEvaluatedKeyToUse;
+    }
+
+    const getClipsAsyncResult = await to(DatabaseAccess.Query(logger, params, includeLastEvaluatedKey));
 
     if (getClipsAsyncResult.error) {
       throw getClipsAsyncResult.error;
