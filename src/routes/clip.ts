@@ -95,8 +95,8 @@ router.post('/change', function(req: express.Request, res: express.Response, nex
   const changedClipData = req.body.changedClipData;
 
   ClipController.ChangeClipData(logger, accountId, clipId, changedClipData)
-    .then((createdClipData) => {
-      new Response(res, createdClipData).Send();
+    .then((updateClipData) => {
+      new Response(res, updateClipData).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -130,8 +130,8 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
   const clipId = req.param('clipId');
 
   ClipController.GetClip(logger, clipId)
-    .then((createdClipData) => {
-      new Response(res, createdClipData).Send();
+    .then((clipData) => {
+      new Response(res, clipData).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -172,8 +172,8 @@ router.get('/user', function(req: express.Request, res: express.Response, next: 
   const nextToken = req.param('next');
 
   ClipController.GetClipsCreatedByUser(logger, accountId, nextToken)
-    .then((createdClipData) => {
-      new Response(res, createdClipData).Send();
+    .then((clipDatas) => {
+      new Response(res, clipDatas).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
@@ -215,8 +215,8 @@ router.get('/episode', function(req: express.Request, res: express.Response, nex
   const nextToken = req.param('next');
 
   ClipController.GetClipsOfEpisodeCreatedByUser(logger, accountId, episodeId, nextToken)
-    .then((createdClipData) => {
-      new Response(res, createdClipData).Send();
+    .then((clipDatas) => {
+      new Response(res, clipDatas).Send();
     })
     .catch((error) => {
       new Response(res, null, error).Send();
