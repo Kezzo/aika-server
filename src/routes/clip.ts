@@ -31,7 +31,7 @@ import { ClipController } from '../controller/clip-controller';
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 201 CREATED
  *     {
- *        "clipId": "baeccada-d102-4e95-9ee1-74f48332578108ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f48332578108ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
  *        "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *        "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *        "creationTimestamp": 1533589723,
@@ -68,8 +68,8 @@ router.put('/', function(req: express.Request, res: express.Response, next: Next
  *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
  *     ]
  *     {
- *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
- *        "changedClipData": {
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
+ *        "clipDataToChange": {
  *          "title": "This is a nice clip!",
  *          "notes": "In this clip the podcast host said something really interesting."
  *        }
@@ -78,7 +78,7 @@ router.put('/', function(req: express.Request, res: express.Response, next: Next
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     {
- *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
  *        "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *        "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *        "creationTimestamp": 1533589723,
@@ -104,6 +104,41 @@ router.post('/change', function(req: express.Request, res: express.Response, nex
 });
 
 /**
+ * @api {get} /clip /
+ * @apiName /clip
+ * @apiDescription Gets a clip with a specific clipId.
+ * @apiGroup Clip
+ *
+ * @apiParamExample {json} Request-Example:
+ *     GET /clip/user?clipId=baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
+ *        "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
+ *        "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
+ *        "creationTimestamp": 1533589723,
+ *        "startTime": 1500,
+ *        "endTime": 2000,
+ *        "title": "This is a nice clip!",
+ *        "notes": "In this clip the podcast host said something really interesting."
+ *     }
+ */
+router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const clipId = req.param('clipId');
+
+  ClipController.GetClip(logger, clipId)
+    .then((createdClipData) => {
+      new Response(res, createdClipData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
  * @api {get} /clip/user /user
  * @apiName /clip/user
  * @apiDescription Get the clips of a user with the given accountId.
@@ -119,7 +154,7 @@ router.post('/change', function(req: express.Request, res: express.Response, nex
  *     HTTP/1.1 200 OK
  *     "result": [
  *        {
- *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
  *            "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *            "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *            "creationTimestamp": 1533589723,
@@ -161,7 +196,7 @@ router.get('/user', function(req: express.Request, res: express.Response, next: 
  *     HTTP/1.1 200 OK
  *     "result": [
  *        {
- *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
  *            "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *            "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *            "creationTimestamp": 1533589723,

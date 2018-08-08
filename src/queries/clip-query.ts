@@ -18,6 +18,21 @@ export class ClipQuery {
     return storeClipAsyncResult.result;
   }
 
+  public static async GetClip(logger: AppLogger, accountIdWithIndex: string, episodeId: string) {
+    const params: any = {
+      TableName: 'CLIPS',
+      Key: { EID : episodeId, ACCIDX : accountIdWithIndex }
+    };
+
+    const getClipsAsyncResult = await to(DatabaseAccess.Get(logger, params));
+
+    if (getClipsAsyncResult.error) {
+      throw getClipsAsyncResult.error;
+    }
+
+    return getClipsAsyncResult.result;
+  }
+
   public static async GetClipsFromUser(logger: AppLogger, accountId: string,
     oldestCreationTimestamp?: number, count?: number) {
 

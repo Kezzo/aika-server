@@ -82,7 +82,7 @@ export class ClipController {
     if (lastEpisodeClipFromUser && _.isArray(lastEpisodeClipFromUser) &&
       lastEpisodeClipFromUser.length > 0 && lastEpisodeClipFromUser[0]) {
 
-      const splitAccountWithIndex = lastEpisodeClipFromUser[0].ACCIDX.split('+');
+      const splitAccountWithIndex = lastEpisodeClipFromUser[0].ACCIDX.split('_');
       clipIndex = parseInt(splitAccountWithIndex[1], 10) + 1;
 
       if (lastEpisodeClipFromUser[0].CLPTS >= clipTimestamp) {
@@ -93,7 +93,7 @@ export class ClipController {
     // construct clip db object
     const clipDatabaseObject: any = {
       ACCID: accountId,
-      ACCIDX: accountId + '+' + clipIndex,
+      ACCIDX: accountId + '_' + clipIndex,
       CLPTS: clipTimestamp,
       EID: episodeId,
       ENDT: clipData.endTime,
@@ -146,8 +146,8 @@ export class ClipController {
       };
     }
 
-    // clipId =  clipDatabaseObject.EID + '+' + clipDatabaseObject.ACCIDX,
-    const splitClipId = clipId.split('+');
+    // clipId =  clipDatabaseObject.EID + '_' + clipDatabaseObject.ACCIDX,
+    const splitClipId = clipId.split('_');
 
     if (!splitClipId || !_.isArray(splitClipId) || splitClipId.length !== 3) {
       return {
@@ -160,7 +160,7 @@ export class ClipController {
     }
 
     const episodeId = splitClipId[0];
-    const accountIdWithIndex = splitClipId[1] + '+' + splitClipId[2];
+    const accountIdWithIndex = splitClipId[1] + '_' + splitClipId[2];
 
     const databaseObjectChanges: any = {};
 
@@ -187,6 +187,41 @@ export class ClipController {
 
     return {
       msg: this.CreateClipResonseMessage(updatedClipData),
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async GetClip(logger: AppLogger, clipId: string) {
+    if (!clipId) {
+      return {
+        msg: {
+          error: 'Clip is missing!',
+          errorCode: ClipError.CLIP_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    // clipId =  clipDatabaseObject.EID + '_' + clipDatabaseObject.ACCIDX,
+    const splitClipId = clipId.split('_');
+
+    if (!splitClipId || !_.isArray(splitClipId) || splitClipId.length !== 3) {
+      return {
+        msg: {
+          error: 'Updated clip data is missing!',
+          errorCode: ClipError.CLIP_ID_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const episodeId = splitClipId[0];
+    const accountIdWithIndex = splitClipId[1] + '_' + splitClipId[2];
+
+    const clipData = await ClipQuery.GetClip(logger, accountIdWithIndex, episodeId);
+
+    return {
+      msg: this.CreateClipResonseMessage(clipData),
       statusCode: httpStatus.OK
     };
   }
@@ -289,7 +324,7 @@ export class ClipController {
 
   private static CreateClipResonseMessage(clipDatabaseObject: any) {
     return {
-      clipId: clipDatabaseObject.EID + '+' + clipDatabaseObject.ACCIDX,
+      clipId: clipDatabaseObject.EID + '_' + clipDatabaseObject.ACCIDX,
       creatorAccountId: clipDatabaseObject.ACCID,
       episodeId: clipDatabaseObject.EID,
       creationTimestamp: clipDatabaseObject.CLPTS,
