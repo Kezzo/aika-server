@@ -8,13 +8,13 @@ import { Response } from '../common/response';
 import { ClipController } from '../controller/clip-controller';
 
 /**
- * @api {put} /clip /
- * @apiName /clip
+ * @api {put} /clip/create /create
+ * @apiName /clip/create
  * @apiDescription Creates a new clip of an episode created by a user.
  * @apiGroup Clip
  *
  * @apiParamExample {json} Request-Example:
- *     PUT /clip
+ *     PUT /clip/create
  *     Headers: [
  *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
  *     ]
@@ -41,7 +41,7 @@ import { ClipController } from '../controller/clip-controller';
  *        "notes": "In this clip the podcast host said something really interesting."
  *     }
  */
-router.put('/', function(req: express.Request, res: express.Response, next: NextFunction) {
+router.put('/create', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
   const accountId = req.get('x-account-id');
   const episodeId = req.body.episodeId;
