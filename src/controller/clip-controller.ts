@@ -115,6 +115,82 @@ export class ClipController {
     };
   }
 
+  public static async ChangeClipData(logger: AppLogger, accountId: string, clipId: string, changedClipData: any) {
+    if (!accountId) {
+      return {
+        msg: {
+          error: 'Account id is missing!',
+          errorCode: ClipError.ACCOUNT_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (!clipId) {
+      return {
+        msg: {
+          error: 'Clip is missing!',
+          errorCode: ClipError.CLIP_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    if (!changedClipData || (!changedClipData.title && !changedClipData.notes)) {
+      return {
+        msg: {
+          error: 'Updated clip data is missing!',
+          errorCode: ClipError.UPDATED_CLIP_DATA_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    // clipId =  clipDatabaseObject.EID + '+' + clipDatabaseObject.ACCIDX,
+    const splitClipId = clipId.split('+');
+
+    if (!splitClipId || !_.isArray(splitClipId) || splitClipId.length !== 3) {
+      return {
+        msg: {
+          error: 'Updated clip data is missing!',
+          errorCode: ClipError.CLIP_ID_INVALID
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const episodeId = splitClipId[0];
+    const accountIdWithIndex = splitClipId[1] + '+' + splitClipId[2];
+
+    const databaseObjectChanges: any = {};
+
+    if (changedClipData.title) {
+      databaseObjectChanges.TITL = changedClipData.title;
+    }
+
+    if (changedClipData.notes) {
+      databaseObjectChanges.NTS = changedClipData.notes;
+    }
+
+    const updatedClipData = await ClipQuery.UpdateEpisodeClipFromUser(logger,
+      accountIdWithIndex, episodeId, databaseObjectChanges);
+
+    if (!updatedClipData) {
+      return {
+        msg: {
+          error: 'Clip data does\'nt exist!',
+          errorCode: ClipError.CLIP_DATA_DOESNT_EXIST
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    return {
+      msg: this.CreateClipResonseMessage(updatedClipData),
+      statusCode: httpStatus.OK
+    };
+  }
+
   public static async GetClipsCreatedByUser(logger: AppLogger, accountId: string, nextToken: string) {
     if (!accountId) {
       return {
@@ -213,7 +289,7 @@ export class ClipController {
 
   private static CreateClipResonseMessage(clipDatabaseObject: any) {
     return {
-      clipId: clipDatabaseObject.EID + clipDatabaseObject.ACCIDX,
+      clipId: clipDatabaseObject.EID + '+' + clipDatabaseObject.ACCIDX,
       creatorAccountId: clipDatabaseObject.ACCID,
       episodeId: clipDatabaseObject.EID,
       creationTimestamp: clipDatabaseObject.CLPTS,

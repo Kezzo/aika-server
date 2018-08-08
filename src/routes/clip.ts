@@ -57,6 +57,53 @@ router.put('/', function(req: express.Request, res: express.Response, next: Next
 });
 
 /**
+ * @api {put} /clip/change /change
+ * @apiName /clip/change
+ * @apiDescription Changes an existing clip of the user and returns the updated clip data.
+ * @apiGroup Clip
+ *
+ * @apiParamExample {json} Request-Example:
+ *     POST /clip/change
+ *     Headers: [
+ *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
+ *     ]
+ *     {
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *        "changedClipData": {
+ *          "title": "This is a nice clip!",
+ *          "notes": "In this clip the podcast host said something really interesting."
+ *        }
+ *     }
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *        "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
+ *        "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
+ *        "creationTimestamp": 1533589723,
+ *        "startTime": 1500,
+ *        "endTime": 2000,
+ *        "title": "This is a nice clip!",
+ *        "notes": "In this clip the podcast host said something really interesting."
+ *     }
+ */
+router.post('/change', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const accountId = req.get('x-account-id');
+  const clipId = req.body.clipId;
+  const changedClipData = req.body.changedClipData;
+
+  ClipController.ChangeClipData(logger, accountId, clipId, changedClipData)
+    .then((createdClipData) => {
+      new Response(res, createdClipData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
  * @api {get} /clip/user /user
  * @apiName /clip/user
  * @apiDescription Get the clips of a user with the given accountId.
@@ -72,7 +119,7 @@ router.put('/', function(req: express.Request, res: express.Response, next: Next
  *     HTTP/1.1 200 OK
  *     "result": [
  *        {
- *            "clipId": "baeccada-d102-4e95-9ee1-74f48332578108ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
  *            "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *            "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *            "creationTimestamp": 1533589723,
@@ -114,7 +161,7 @@ router.get('/user', function(req: express.Request, res: express.Response, next: 
  *     HTTP/1.1 200 OK
  *     "result": [
  *        {
- *            "clipId": "baeccada-d102-4e95-9ee1-74f48332578108ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
+ *            "clipId": "baeccada-d102-4e95-9ee1-74f4833257810+8ce5540b-0676-41a4-a4dc-04ffa83f847b+2",
  *            "creatorAccountId": "8ce5540b-0676-41a4-a4dc-04ffa83f847b",
  *            "episodeId": "baeccada-d102-4e95-9ee1-74f4833257810",
  *            "creationTimestamp": 1533589723,

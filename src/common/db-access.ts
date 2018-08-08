@@ -181,4 +181,26 @@ export class DatabaseAccess {
       params.KeyConditionExpression += ' and #sortKey ' + condition + ' :sortValue';
     }
   }
+
+  public static AddUpdateParams(params: UpdateItemInput, fieldsToUpdate: object) {
+    params.ExpressionAttributeNames = {};
+    params.ExpressionAttributeValues = {};
+    params.UpdateExpression = 'SET ';
+
+    let index: number = 0;
+    for (const property in fieldsToUpdate) {
+      if (fieldsToUpdate.hasOwnProperty(property)) {
+        params.ExpressionAttributeNames['#' + index] = property;
+        params.ExpressionAttributeValues[':' + index] = fieldsToUpdate[property];
+
+        if (index > 0) {
+          params.UpdateExpression += ', ';
+        }
+
+        params.UpdateExpression += '#' + index + ' = :' + index;
+
+        index++;
+      }
+    }
+  }
 }

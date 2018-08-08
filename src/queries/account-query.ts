@@ -97,27 +97,10 @@ export class AccountQuery {
     const updateParams: any = {
       TableName: 'ACCOUNTS',
       Key: { ACCID: accountId },
-      ExpressionAttributeNames: {},
-      ExpressionAttributeValues: {},
-      UpdateExpression: 'SET ',
       ConditionExpression: 'attribute_exists(ACCID)'
     };
 
-    let index: number = 0;
-    for (const property in fieldsToUpdate) {
-      if (fieldsToUpdate.hasOwnProperty(property)) {
-        updateParams.ExpressionAttributeNames['#' + index] = property;
-        updateParams.ExpressionAttributeValues[':' + index] = fieldsToUpdate[property];
-
-        if (index > 0) {
-          updateParams.UpdateExpression += ', ';
-        }
-
-        updateParams.UpdateExpression += '#' + index + ' = :' + index;
-
-        index++;
-      }
-    }
+    DatabaseAccess.AddUpdateParams(updateParams, fieldsToUpdate);
 
     const asyncResult = await to(DatabaseAccess.Update(logger, updateParams));
 

@@ -61,4 +61,24 @@ export class ClipQuery {
 
     return getClipsAsyncResult.result;
   }
+
+  public static async UpdateEpisodeClipFromUser(logger: AppLogger, accountIdWithIndex: string,
+    episodeId: string, clipDataToChange: object) {
+    const updateParams: any = {
+      TableName: 'CLIPS',
+      Key: { EID : episodeId, ACCIDX : accountIdWithIndex },
+      ReturnValues: 'ALL_NEW',
+      ConditionExpression: 'attribute_exists(EID) AND attribute_exists(ACCIDX)'
+    };
+
+    DatabaseAccess.AddUpdateParams(updateParams, clipDataToChange);
+
+    const updateClipAsyncResult = await to(DatabaseAccess.Update(logger, updateParams));
+
+    if (updateClipAsyncResult.error) {
+      throw updateClipAsyncResult.error;
+    }
+
+    return updateClipAsyncResult.result;
+  }
 }
