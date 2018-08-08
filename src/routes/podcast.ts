@@ -8,8 +8,8 @@ import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
 /**
- * @api {get} /podcast?id /?id
- * @apiName /podcast?id
+ * @api {get} /podcast /
+ * @apiName /podcast
  * @apiDescription Gets the podcast data with the given PID.
  * @apiGroup Podcast
  *
@@ -210,8 +210,8 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
 });
 
 /**
- * @api {get} /podcast/episodes?podcastId /episodes?podcastId
- * @apiName /podcast/episodes?podcastId
+ * @api {get} /podcast/episodes /episodes
+ * @apiName /podcast/episodes
  * @apiDescription Gets the a set of the episodes of a podcast, sorted by release timestamp.
  * @apiGroup Podcast
  *
@@ -233,18 +233,53 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
  *          "name": "The best Episode 2",
  *          "description": "This is just a tribute too",
  *          "releaseTimestamp": 1528639577,
- *          "duration": "01:14:33",
+ *          "duration": 1383,
  *          "audioUrl": "https://9to5mac.files.wordpress.com/2018/06/9to5mac-happy-hour-06-08-2018.mp3"
  *       }
  *    ]
  */
 router.get('/episodes', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
-  const accountId = req.param('podcastId');
+  const podcastId = req.param('podcastId');
   const biggestIndex = req.param('biggestIndex');
   const smallestIndex = req.param('smallestIndex');
 
-  PodcastController.GetEpisodesFromPodcast(logger, accountId, biggestIndex, smallestIndex)
+  PodcastController.GetEpisodesFromPodcast(logger, podcastId, biggestIndex, smallestIndex)
+    .then((episodesData) => {
+      new Response(res, episodesData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {get} /podcast/episode /episode
+ * @apiName /podcast/episode
+ * @apiDescription Gets a specific episode with the given id.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     GET /podcast/episodes?episodeId=baeccada-d102-4e95-9ee1-74f4833257815
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *        "episodeId": "baeccada-d102-4e95-9ee1-74f4833257815",
+ *        "index": 5
+ *        "podcastId": "baeccada-d102-4e95-9ee1-74f483325781",
+ *        "name": "Take Me As I Am, Whoever I Am | With Rebecca Hall",
+ *        "description": "Rebecca Hall who stars in the new drama \"Christine,\" reads a story about dating -- while manic.",
+ *        "releaseTimestamp": 1528639577,
+ *        "duration": 1383,
+ *        "audioUrl": "https://dts.podtrac.com/redirect.mp3/traffic.megaphone.fm/BUR7743908905.mp3"
+ *     }
+ */
+router.get('/episode', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+  const episodeId = req.param('episodeId');
+
+  PodcastController.GetEpisode(logger, episodeId)
     .then((episodesData) => {
       new Response(res, episodesData).Send();
     })

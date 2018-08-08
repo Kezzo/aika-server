@@ -29,7 +29,7 @@ export class PodcastController {
     if (!podcast) {
       return {
         msg: {
-          error: 'Podcast with id: ' + podcastId + 'not found!',
+          error: 'Podcast with id: ' + podcastId + ' was not found!',
           errorCode: PodcastError.PODCAST_NOT_FOUND
         },
         statusCode: httpStatus.BAD_REQUEST
@@ -40,6 +40,47 @@ export class PodcastController {
 
     if (podcast) {
       responseMessage = PodcastController.GetPodcastResponseMessage([podcast], null);
+      if (responseMessage && _.isArray(responseMessage) && responseMessage.length > 0) {
+        responseMessage = responseMessage[0];
+      }
+
+    } else {
+      responseMessage = '';
+    }
+
+    return {
+      msg: responseMessage,
+      statusCode: httpStatus.OK
+    };
+  }
+
+  public static async GetEpisode(logger: AppLogger, episodeId: string) {
+    if (!episodeId) {
+      return {
+        msg: {
+          error: 'Episode id is missing!',
+          errorCode: PodcastError.EPISODE_ID_MISSING
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    const episode = await PodcastQuery.GetEpisode(logger, episodeId);
+
+    if (!episode) {
+      return {
+        msg: {
+          error: 'Episode with id: ' + episodeId + ' was not found!',
+          errorCode: PodcastError.EPISODE_NOT_FOUND
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
+    let responseMessage;
+
+    if (episode) {
+      responseMessage = PodcastController.GetEpisodeResponseMessage([episode]);
       if (responseMessage && _.isArray(responseMessage) && responseMessage.length > 0) {
         responseMessage = responseMessage[0];
       }

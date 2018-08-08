@@ -25,6 +25,28 @@ export class PodcastQuery {
     return asyncResult.result;
   }
 
+  public static async GetEpisode(logger: AppLogger, episodeId: string) {
+    if (!episodeId) {
+      return null;
+    }
+
+    const podcastId = episodeId.substring(0, 36);
+    const index = parseInt(episodeId.substring(36), 10);
+
+    const params: any = {
+      TableName: 'EPISODES',
+      Key: { PID: podcastId, INDEX: index }
+    };
+
+    const asyncResult = await to(DatabaseAccess.Get(logger, params));
+
+    if (asyncResult.error) {
+      throw asyncResult.error;
+    }
+
+    return asyncResult.result;
+  }
+
   public static async GetPodcasts(logger: AppLogger, podcastIds: string[]) {
     if (!podcastIds) {
       return null;
