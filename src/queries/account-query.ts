@@ -48,13 +48,14 @@ export class AccountQuery {
     return await this.CreateAccount(logger, mail, passwordHash);
   }
 
-  public static async CreateAccountFromTwitterId(logger: AppLogger, twitterId: string) {
-    logger.Info('Creating account for user with twitterId: ' + twitterId);
-    return await this.CreateAccount(logger, null, null, twitterId);
+  public static async CreateAccountFromTwitterProfile(logger: AppLogger, twitterProfile: object) {
+    logger.Info('Creating account for user with twitterProfile: ' + twitterProfile);
+    return await this.CreateAccount(logger, null, null, twitterProfile);
   }
 
-  // TODO: Add more options like GoogleID, FacebookID or TwitterID
-  private static async CreateAccount(logger: AppLogger, mail?: string, passwordHash?: string, twitterId?: string) {
+  // TODO: Add more options like GoogleID & FacebookID
+  private static async CreateAccount(logger: AppLogger, mail?: string,
+    passwordHash?: string, twitterProfile?: any) {
     const accountId = uuidv4();
     const authToken = uuidv4();
 
@@ -70,8 +71,12 @@ export class AccountQuery {
       if (passwordHash) {
         itemToCreate.PWHASH = passwordHash;
       }
-    } else if (twitterId) {
-      itemToCreate.TWITID = twitterId;
+
+      itemToCreate.USRNM = mail.split('@')[0];
+
+    } else if (twitterProfile) {
+      itemToCreate.TWITID = twitterProfile.user_id;
+      itemToCreate.USRNM = twitterProfile.screen_name;
     } else {
       throw new Error('Creating an account require a mail or a twitterId!');
     }

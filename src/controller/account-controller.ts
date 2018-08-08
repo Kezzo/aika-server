@@ -67,6 +67,7 @@ export class AccountController {
     const ott = await OneTimeTokenService.GenerateOTT(asyncResult.result.ACCID);
 
     const response = {
+      userName: accountData.USRNM,
       accountId: asyncResult.result.ACCID,
       authToken: asyncResult.result.AUTHTK,
       oneTimeToken: ott
@@ -267,6 +268,7 @@ export class AccountController {
     };
 
     if (isInitialSignIn) {
+      response.userName = accountData.USRNM;
       response.accountId = accountData.ACCID;
       response.authToken = accountData.AUTHTK;
     }
@@ -289,22 +291,22 @@ export class AccountController {
     }
 
     // TODO: Also get access tokens and store them!
-    const twitterId = await TwitterService.GetTwitterId(logger, oauthToken, oauthVerifier);
+    const twitterProfile = await TwitterService.GetTwitterProfile(logger, oauthToken, oauthVerifier);
 
-    if (!twitterId) {
+    if (!twitterProfile) {
       return {
         msg: {
-          error: 'Couldn\'t retrieve TwitterId with given tokens!',
+          error: 'Couldn\'t retrieve twitter profile with given tokens!',
           errorCode: AccountError.TWITTER_AUTH_FAILED
         },
         statusCode: httpStatus.BAD_REQUEST
       };
     }
 
-    let accountData = await AccountQuery.GetAccount(logger, true, null, null, twitterId);
+    let accountData = await AccountQuery.GetAccount(logger, false, null, null, twitterProfile.user_id);
 
     if (!accountData) {
-      const asyncResult = await to(AccountQuery.CreateAccountFromTwitterId(logger, twitterId));
+      const asyncResult = await to(AccountQuery.CreateAccountFromTwitterProfile(logger, twitterProfile));
 
       if (asyncResult.error) {
         throw asyncResult.error;
@@ -315,6 +317,7 @@ export class AccountController {
     const ott = await OneTimeTokenService.GenerateOTT(accountData.ACCID);
 
     const response = {
+      userName: accountData.USRNM,
       accountId: accountData.ACCID,
       authToken: accountData.AUTHTK,
       oneTimeToken: ott

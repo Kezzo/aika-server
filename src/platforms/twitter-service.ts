@@ -46,7 +46,7 @@ export class TwitterService {
     return loginTokenRequestResult.result.oauth_token;
   }
 
-  public static async GetTwitterId(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+  public static async GetTwitterProfile(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
     logger.Info('Getting twitter id!');
     const requestData = {
       url: this.twitterApiEndpoint + '/oauth/access_token' + '?oauth_verifier=' + oauthVerifier,
@@ -61,7 +61,7 @@ export class TwitterService {
       throw accessTokenRequestResult.error;
     }
 
-    return accessTokenRequestResult.result.user_id;
+    return accessTokenRequestResult.result;
   }
 
   private static async SendSignedAPIRequest(logger: AppLogger, requestData: any, token: object) {
