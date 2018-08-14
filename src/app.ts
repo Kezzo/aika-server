@@ -25,6 +25,7 @@ import { MailService } from './common/mail-service';
 
 import { TwitterService } from './platforms/twitter-service';
 import { SearchAccess } from './common/search-access';
+import { StaticFileAccess } from './common/static-file-access';
 
 let appLogger: AppLogger;
 
@@ -79,7 +80,7 @@ const startup = async function() {
 
   DatabaseAccess.Init(appLogger);
   await Promise.all([SecretsProvider.LoadSecrets(['send-grid-api-key', 'aika-twitter-api-keys']),
-    CacheAccess.Init(appLogger), SearchAccess.Init(appLogger)]);
+    CacheAccess.Init(appLogger), SearchAccess.Init(appLogger), StaticFileAccess.LoadFiles(['static/toplist.json'])]);
 
   MailService.Init();
   TwitterService.Init();

@@ -10,6 +10,7 @@ import to, { AsyncResult } from '../utility/to';
 import { CacheAccess } from '../common/cache-access';
 import { PodcastTasks } from '../tasks/podcast-tasks';
 import { EnvironmentHelper } from '../utility/environment-helper';
+import { StaticFileAccess } from '../common/static-file-access';
 
 export class PodcastController {
 
@@ -293,8 +294,12 @@ export class PodcastController {
     }
 
     if (followEntries.length === 0 && episodesFromCache.length === 0) {
+      const fileData = StaticFileAccess.GetFileData('static/toplist.json');
       return {
-        msg: {},
+        msg: {
+          type: 'toplist',
+          result: fileData,
+        },
         statusCode: httpStatus.OK
       };
     }
@@ -367,6 +372,7 @@ export class PodcastController {
 
     return {
       msg: {
+        type: 'feed',
         result: responseMessage,
         nextToken: nextTokenString,
         isFirstPage: nextToken ? false : true
