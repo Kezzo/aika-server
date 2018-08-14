@@ -8,6 +8,7 @@ import { AppLogger } from '../logging/app-logger';
 import { Response } from '../common/response';
 
 /**
+ * @apiIgnore
  * @api {put} /account/create/mail /create/mail
  * @apiName /account/create/mail
  * @apiDescription Create a user account with a mail and password.
@@ -48,6 +49,7 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
 });
 
 /**
+ * @apiIgnore
  * @api {post} /account/login/mail /login/mail
  * @apiName /account/login/mail
  * @apiDescription Login to user account with a mail and password.
@@ -220,6 +222,7 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
 });
 
 /**
+ * @apiIgnore
  * @api {get} /account/verify /verify
  * @apiName /account/verify
  * @apiDescription Verify account created with mail.
@@ -253,6 +256,7 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
 });
 
 /**
+ * @apiIgnore
  * @api {post} /account/password/reset /password/reset
  * @apiName /account/password/reset
  * @apiDescription Starts the password reset flow.
@@ -286,6 +290,7 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
 });
 
 /**
+ * @apiIgnore
  * @api {post} /account/password/change /password/change
  * @apiName /account/password/change
  * @apiDescription Completes the password reset flow.
