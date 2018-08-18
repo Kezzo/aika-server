@@ -8,6 +8,5 @@ COPY . .
 RUN tsc -p tsconfig.json
 RUN apidoc -i src -o apidoc
 RUN rm -rf src tsconfig.json dockerfile apidoc.json
-ENV NODE_ENV DEV
 EXPOSE 3075
 CMD ["npm", "start"]

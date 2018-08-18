@@ -194,6 +194,8 @@ export class CacheAccess {
 
   private static GetCacheEndpoint() {
     switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      return 'live-aika-redis.qhjcrj.0001.use1.cache.amazonaws.com';
     case Environment.DEV:
       return 'dev-aika-redis.nyrfwx.0001.euw1.cache.amazonaws.com';
     case Environment.LOCAL:

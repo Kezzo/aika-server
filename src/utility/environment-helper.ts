@@ -3,6 +3,8 @@ import { Environment } from './environment';
 export class EnvironmentHelper {
   public static GetServerUrl() {
     switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      return 'https://live.aika.cloud.tinkrinc.co';
     case Environment.DEV:
       return 'https://dev.aika.cloud.tinkrinc.co';
     case Environment.LOCAL:

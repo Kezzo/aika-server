@@ -70,6 +70,8 @@ export class MailService {
 
   private static GetEnvironmentBasedWebsiteUrl() {
     switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      return 'https://tinkrinc.co/reset.html?live=true';
     case Environment.DEV:
       return 'https://tinkrinc.co/reset.html?dev=true';
     case Environment.LOCAL:

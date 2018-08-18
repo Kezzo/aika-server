@@ -4,19 +4,32 @@ import _ = require('underscore');
 import { AppLogger } from '../logging/app-logger';
 import { BatchGetItemInput, GetItemInput, PutItemInput,
   QueryInput, UpdateItemInput, DeleteItemInput, BatchWriteItemInput } from 'aws-sdk/clients/dynamodb';
+import { EnvironmentHelper } from '../utility/environment-helper';
+import { Environment } from '../utility/environment';
 
 export class DatabaseAccess {
   private static dynamodb: AWS.DynamoDB.DocumentClient = null;
 
   public static Init(appLogger: AppLogger) {
     AWS.config.update({
-      region: 'eu-west-1',
+      region: DatabaseAccess.GetRegion(),
       accessKeyId: '',
       secretAccessKey : ''
     });
 
     this.dynamodb = new AWS.DynamoDB.DocumentClient();
     appLogger.Info('DatabaseAccess Init!');
+  }
+
+  private static GetRegion() {
+    switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      return 'us-east-1';
+    case Environment.DEV:
+      return 'eu-west-1';
+    case Environment.LOCAL:
+      return 'eu-west-1';
+    }
   }
 
   public static async Put(logger: AppLogger, params: PutItemInput) {

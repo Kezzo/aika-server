@@ -1,6 +1,8 @@
 import express = require('express');
 import _ = require('underscore');
 import httpStatus = require('http-status-codes');
+import { EnvironmentHelper } from '../utility/environment-helper';
+import { Environment } from '../utility/environment';
 
 export class Response {
   private res: express.Response;
@@ -45,10 +47,14 @@ export class Response {
         responseMessage = JSON.stringify(this.error.message);
       } else {
         // TODO: Do not send error+stack in live environment!
-        if (!_.isUndefined(this.error.stack)) {
-          responseMessage = this.error.stack;
+        if (EnvironmentHelper.GetEnvironment() === Environment.LIVE) {
+          responseMessage = 'Unexpected internal server error!';
         } else {
-          responseMessage = this.error.toString();
+          if (!_.isUndefined(this.error.stack)) {
+            responseMessage = this.error.stack;
+          } else {
+            responseMessage = this.error.toString();
+          }
         }
       }
     } else {

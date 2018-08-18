@@ -26,6 +26,13 @@ export class SearchAccess {
     let config: elasticsearch.ConfigOptions = null;
 
     switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      config = {
+        host: 'https://vpc-aika-live-app-search-jvrfihnuaf7ini37dm2slubavm.us-east-1.es.amazonaws.com',
+        log: 'error',
+        connectionClass: require('http-aws-es')
+      };
+      break;
     case Environment.DEV:
       config = {
         host: 'https://vpc-aika-dev-app-search-ppjmsnw3dv6li3nzbiytzajfjy.eu-west-1.es.amazonaws.com',
