@@ -295,10 +295,33 @@ export class PodcastController {
 
     if (followEntries.length === 0 && episodesFromCache.length === 0) {
       const fileData = StaticFileAccess.GetFileData('static/toplist.json');
+
+      let topList = [];
+      if (fileData) {
+        const episodesRetrievalPromises = [];
+
+        for (const podcastId of fileData) {
+          episodesRetrievalPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, null, null, 1));
+        }
+
+        const latestTopPodcastEpisodes = await Promise.all(episodesRetrievalPromises);
+
+        for (const latestTopPodcastEpisode of latestTopPodcastEpisodes) {
+          if (latestTopPodcastEpisode && _.isArray(latestTopPodcastEpisode) && latestTopPodcastEpisode.length > 0) {
+            topList.push(latestTopPodcastEpisode[0]);
+          }
+        }
+
+        topList = this.GetEpisodeResponseMessage(topList);
+        topList = _.sortBy(topList, (topListEntry) => {
+          return -topListEntry.releaseTimestamp;
+        });
+      }
+
       return {
         msg: {
           type: 'toplist',
-          result: fileData,
+          result: topList,
         },
         statusCode: httpStatus.OK
       };
