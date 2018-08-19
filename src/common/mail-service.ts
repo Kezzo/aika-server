@@ -46,7 +46,7 @@ export class MailService {
       // tslint:disable-next-line:max-line-length
       html: '<p>Hi! Thanks for using Aika.</p>' +
       '<p>Please open the following link on the device with Aika to login into your account:</p>' +
-      '<a href="' + loginLink + '">' + loginLink + '</a>'
+      '<a clicktracking=off href="' + loginLink + '">' + loginLink + '</a>'
     });
   }
 
