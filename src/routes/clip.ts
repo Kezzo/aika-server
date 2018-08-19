@@ -69,7 +69,7 @@ router.put('/create', function(req: express.Request, res: express.Response, next
  *     ]
  *     {
  *        "clipId": "baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2",
- *        "clipDataToChange": {
+ *        "changedClipData": {
  *          "title": "This is a nice clip!",
  *          "notes": "In this clip the podcast host said something really interesting."
  *        }
