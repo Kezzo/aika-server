@@ -231,6 +231,10 @@ export class PodcastController {
     };
   }
 
+  public static async GetLatestTopPodcastEpisodes(logger: AppLogger) {
+    return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger);
+  }
+
   public static async GetFollowedPodcastFeed(logger: AppLogger, accountId: string, nextToken: string) {
     if (!accountId) {
       return {
@@ -294,37 +298,7 @@ export class PodcastController {
     }
 
     if (followEntries.length === 0 && episodesFromCache.length === 0) {
-      const fileData = StaticFileAccess.GetFileData('static/toplist.json');
-
-      let topList = [];
-      if (fileData) {
-        const episodesRetrievalPromises = [];
-
-        for (const podcastId of fileData) {
-          episodesRetrievalPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, null, null, 1));
-        }
-
-        const latestTopPodcastEpisodes = await Promise.all(episodesRetrievalPromises);
-
-        for (const latestTopPodcastEpisode of latestTopPodcastEpisodes) {
-          if (latestTopPodcastEpisode && _.isArray(latestTopPodcastEpisode) && latestTopPodcastEpisode.length > 0) {
-            topList.push(latestTopPodcastEpisode[0]);
-          }
-        }
-
-        topList = this.GetEpisodeResponseMessage(topList);
-        topList = _.sortBy(topList, (topListEntry) => {
-          return -topListEntry.releaseTimestamp;
-        });
-      }
-
-      return {
-        msg: {
-          type: 'toplist',
-          result: topList,
-        },
-        statusCode: httpStatus.OK
-      };
+      return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger);
     }
 
     const episodesPerPodcast = Math.max(1, Math.round(entriesPerPage / (followEntries.length + episodesFromCache.length)));
@@ -813,5 +787,39 @@ export class PodcastController {
         audioUrl: episode.MEDIA
       };
     });
+  }
+
+  private static async GetLatestTopPodcastEpisodesResponse(logger: AppLogger) {
+    const fileData = StaticFileAccess.GetFileData(EnvironmentHelper.GetTopListFileName());
+
+    let topList = [];
+    if (fileData) {
+      const episodesRetrievalPromises = [];
+
+      for (const podcastId of fileData) {
+        episodesRetrievalPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, null, null, 1));
+      }
+
+      const latestTopPodcastEpisodes = await Promise.all(episodesRetrievalPromises);
+
+      for (const latestTopPodcastEpisode of latestTopPodcastEpisodes) {
+        if (latestTopPodcastEpisode && _.isArray(latestTopPodcastEpisode) && latestTopPodcastEpisode.length > 0) {
+          topList.push(latestTopPodcastEpisode[0]);
+        }
+      }
+
+      topList = this.GetEpisodeResponseMessage(topList);
+      topList = _.sortBy(topList, (topListEntry) => {
+        return -topListEntry.releaseTimestamp;
+      });
+    }
+
+    return {
+      msg: {
+        type: 'toplist',
+        result: topList,
+      },
+      statusCode: httpStatus.OK
+    };
   }
 }

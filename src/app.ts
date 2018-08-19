@@ -80,7 +80,7 @@ const startup = async function() {
 
   DatabaseAccess.Init(appLogger);
   await Promise.all([SecretsProvider.LoadSecrets(['send-grid-api-key', 'aika-twitter-api-keys']),
-    CacheAccess.Init(appLogger), SearchAccess.Init(appLogger), StaticFileAccess.LoadFiles(['static/toplist.json'])]);
+    CacheAccess.Init(appLogger), SearchAccess.Init(appLogger), StaticFileAccess.LoadFiles([EnvironmentHelper.GetTopListFileName()])]);
 
   MailService.Init();
   TwitterService.Init();

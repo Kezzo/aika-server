@@ -12,6 +12,17 @@ export class EnvironmentHelper {
     }
   }
 
+  public static GetTopListFileName() {
+    switch (EnvironmentHelper.GetEnvironment()) {
+    case Environment.LIVE:
+      return 'static/live-toplist.json';
+    case Environment.DEV:
+      return 'static/dev-toplist.json';
+    case Environment.LOCAL:
+      return 'static/dev-toplist.json';
+    }
+  }
+
   public static GetEnvironment() {
     switch (process.env.NODE_ENV) {
     case 'LIVE':

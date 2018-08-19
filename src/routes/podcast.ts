@@ -164,7 +164,7 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 /**
  * @api {get} /podcast/followed/episode/feed /followed/episode/feed
  * @apiName /followed/episode/feed
- * @apiDescription Gets the latest released episodes of the podcasts a user follows.
+ * @apiDescription Gets the latest released episodes of the podcasts a user follows or the latest episodes of the top podcasts, if the user doesn't follow any podcasts.
  * @apiGroup Podcast
  *
  * @apiParam {String} next Optional. Can be set get the next page of results.
@@ -225,6 +225,50 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
   const nextToken = req.param('next');
 
   PodcastController.GetFollowedPodcastFeed(logger, accountId, nextToken)
+    .then((followedPodcastsData) => {
+      new Response(res, followedPodcastsData).Send();
+    })
+    .catch((error) => {
+      new Response(res, null, error).Send();
+    });
+});
+
+/**
+ * @api {get} /podcast/top/episode/feed /top/episode/feed
+ * @apiName /top/episode/feed
+ * @apiDescription Gets the latest released episodes of the top podcasts.
+ * @apiGroup Podcast
+ *
+ * @apiParamExample {json} Request-Example:
+ *     GET /top/episode/feed
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *    	  "type": "toplist",
+ *        "result": [
+ *          {
+ *             "podcastId": "3869a33f-f97c-45cd-a33f-bff52aa2e392",
+ *             "name": "Slow Burn: A Podcast About Watergate",
+ *             "description": "You think you know the story, or maybe you don’t. But Watergate was stranger, wilder, and more exciting than you can imagine. What did it feel like to live through the scandal that brought down President Nixon? Find out on this eight-episode podcast miniseries hosted by Leon Neyfakh.\r\n\r\nThis podcast is made possible by Slate Plus members, who get a full-length bonus episode every week. Find out more at http://slate.com/slowburn.",
+ *             "author": "Slate",
+ *             "authorUrl": "https://feeds.megaphone.fm/slate.com/watergate",
+ *             "genre": [
+ *                 "Society & Culture",
+ *                 "News & Politics"
+ *             ],
+ *             "image": "http://static.megaphone.fm/podcasts/86fe6492-bb2a-11e7-873d-cf56b25e8a62/image/uploads_2F1516104959069-juhjwii8cfc-a13142fbe63f810dd5a31fca9562b7af_2F01_Slate_Redux_Podcast_Cover_Slow-Burn.jpg",
+ *             "source": "itunes",
+ *             "sourceId": "1315040130",
+ *             "sourceLink": "http://feeds.megaphone.fm/watergate"
+ *          }
+ *        ]
+ *     }
+ */
+router.get('/top/episode/feed', function(req: express.Request, res: express.Response, next: NextFunction) {
+  const logger = new AppLogger(req, res);
+
+  PodcastController.GetLatestTopPodcastEpisodes(logger)
     .then((followedPodcastsData) => {
       new Response(res, followedPodcastsData).Send();
     })

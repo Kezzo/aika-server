@@ -23,6 +23,7 @@ export class OneTimeTokenService {
     '/podcast',
     '/podcast/episode',
     '/podcast/episodes',
+    '/podcast/top/episode/feed',
     '/podcast/import/episodes',
     '/podcast/import/raw',
     '/search/podcasts',
