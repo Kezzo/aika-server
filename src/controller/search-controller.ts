@@ -35,9 +35,13 @@ export class SearchController {
 
     const sortedPodcastResults = [];
     for (const searchResult of searchResults) {
-      sortedPodcastResults.push(_.find(getPodcastsAsyncResult, (podcast: any) => {
+      const podcastData = _.find(getPodcastsAsyncResult, (podcast: any) => {
         return podcast && podcast.PID === searchResult._id;
-      }));
+      });
+
+      if (podcastData) {
+        sortedPodcastResults.push();
+      }
     }
 
     const podcastEntries = PodcastController.GetPodcastResponseMessage(sortedPodcastResults, null);
@@ -91,14 +95,18 @@ export class SearchController {
 
     const sortedEpisodeResults = [];
     for (const searchResult of searchResults) {
-      sortedEpisodeResults.push(_.find(getEpisodesAsyncResult, (episode: any) => {
+      const episodeData = _.find(getEpisodesAsyncResult, (episode: any) => {
         if (!episode) {
           return false;
         }
 
         const compositeEpisodeKey = episode.PID + '+' + episode.INDEX;
         return compositeEpisodeKey === searchResult._id;
-      }));
+      });
+
+      if (episodeData) {
+        sortedEpisodeResults.push(episodeData);
+      }
     }
 
     const podcastEntries = PodcastController.GetEpisodeResponseMessage(sortedEpisodeResults);
