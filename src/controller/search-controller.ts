@@ -36,7 +36,7 @@ export class SearchController {
     const sortedPodcastResults = [];
     for (const searchResult of searchResults) {
       sortedPodcastResults.push(_.find(getPodcastsAsyncResult, (podcast: any) => {
-        return podcast.PID === searchResult._id;
+        return podcast && podcast.PID === searchResult._id;
       }));
     }
 
@@ -92,6 +92,10 @@ export class SearchController {
     const sortedEpisodeResults = [];
     for (const searchResult of searchResults) {
       sortedEpisodeResults.push(_.find(getEpisodesAsyncResult, (episode: any) => {
+        if (!episode) {
+          return false;
+        }
+
         const compositeEpisodeKey = episode.PID + '+' + episode.INDEX;
         return compositeEpisodeKey === searchResult._id;
       }));

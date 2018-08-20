@@ -65,7 +65,7 @@ export class SearchAccess {
 
     const result = searchAsyncResult.result;
 
-    logger.Info('Searching for: ' + JSON.stringify(body) + ' in index: ' + index +
+    logger.Info('Searched for: ' + JSON.stringify(body) + ' in index: ' + index +
       ' successful! Found ' + result.hits.total + ' results.');
 
     return result.hits.hits;
