@@ -40,7 +40,7 @@ export class SearchController {
       });
 
       if (podcastData) {
-        sortedPodcastResults.push();
+        sortedPodcastResults.push(podcastData);
       }
     }
 
