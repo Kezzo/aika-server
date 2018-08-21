@@ -8,14 +8,14 @@ import { Response } from '../common/response';
 import { SearchController } from '../controller/search-controller';
 
 /**
- * @api {get} /search/podcasts?term?next /podcasts?term?next
- * @apiName /search/podcasts?term?next
+ * @api {get} /search/podcasts /podcasts
+ * @apiName /search/podcasts
  * @apiDescription Returns podcasts based on a given search term.
  * @apiGroup Search
  *
  * @apiParamExample {json} Request-Example:
- *     GET /search/podcasts?term=test search
- *     GET /search/podcasts?term=test search?next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
+ *     GET /search/podcasts?term=test+search
+ *     GET /search/podcasts?term=test+search?next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -51,14 +51,14 @@ router.get('/podcasts', function(req: express.Request, res: express.Response, ne
 });
 
 /**
- * @api {get} /search/episodes?term?next /episodes?term?next
- * @apiName /search/episodes?term?next
+ * @api {get} /search/episodes /episodes
+ * @apiName /search/episodes
  * @apiDescription Returns episodes based on a given search term.
  * @apiGroup Search
  *
  * @apiParamExample {json} Request-Example:
- *     GET /search/episodes?term=test search
- *     GET /search/episodes?term=test search?next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
+ *     GET /search/episodes?term=test+search
+ *     GET /search/episodes?term=test+search?next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -91,28 +91,30 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
 });
 
 /**
- * @api {get} /search/suggestions?term /suggestions?term
- * @apiName /search/suggestions?term
+ * @api {get} /search/suggestions /suggestions
+ * @apiName /search/suggestions
  * @apiDescription Returns podcast name search suggestion. Used while the user is typing.
  * @apiGroup Search
  *
  * @apiParamExample {json} Request-Example:
- *     GET /search/suggestions?term=Start typ
+ *     GET /search/suggestions?term=Start+typ
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
- *     "result": [
- *        "Jenna & Julien Podcast",
- *        "Jesus and Jollof",
- *        "Dear Joan and Jericha (Julia Davis and Vicki Pepperdine)",
- *        "Hanna ja Joonas - Kermaperse & Komposti",
- *        "Julio Caezar presents JuliTunzZz Radio",
- *        "Learn Japanese | JapanesePod101.com (Audio)",
- *        "Jacques... Jacques Higelin",
- *        "Jäljillä",
- *        "秋元才加とJOYのWeekly Japan!!",
- *        "Jocko Podcast"
- *     ]
+ *     {
+ *        "result": [
+ *          "Jenna & Julien Podcast",
+ *          "Jesus and Jollof",
+ *          "Dear Joan and Jericha (Julia Davis and Vicki Pepperdine)",
+ *          "Hanna ja Joonas - Kermaperse & Komposti",
+ *          "Julio Caezar presents JuliTunzZz Radio",
+ *          "Learn Japanese | JapanesePod101.com (Audio)",
+ *          "Jacques... Jacques Higelin",
+ *          "Jäljillä",
+ *          "秋元才加とJOYのWeekly Japan!!",
+ *          "Jocko Podcast"
+ *        ]
+ *     }
  */
 router.get('/suggestions', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);

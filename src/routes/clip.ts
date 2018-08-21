@@ -110,7 +110,7 @@ router.post('/change', function(req: express.Request, res: express.Response, nex
  * @apiGroup Clip
  *
  * @apiParamExample {json} Request-Example:
- *     GET /clip/user?clipId=baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2
+ *     GET /clip?clipId=baeccada-d102-4e95-9ee1-74f4833257810_8ce5540b-0676-41a4-a4dc-04ffa83f847b_2
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -187,6 +187,7 @@ router.get('/user', function(req: express.Request, res: express.Response, next: 
  * @apiGroup Clip
  *
  * @apiParamExample {json} Request-Example:
+ *     GET /clip/episode?episodeId=baeccada-d102-4e95-9ee1-74f4833257810
  *     GET /clip/episode?episodeId=baeccada-d102-4e95-9ee1-74f4833257810&next=eyJ0ZXJtIjoicG9kY2FzdCIsImZyb20iOjIwfQ==
  *     Headers: [
  *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe

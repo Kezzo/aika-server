@@ -163,15 +163,15 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
 
 /**
  * @api {get} /podcast/followed/episode/feed /followed/episode/feed
- * @apiName /followed/episode/feed
+ * @apiName /podcast/followed/episode/feed
  * @apiDescription Gets the latest released episodes of the podcasts a user follows or the latest episodes of the top podcasts, if the user doesn't follow any podcasts.
  * @apiGroup Podcast
  *
  * @apiParam {String} next Optional. Can be set get the next page of results.
  *
  * @apiParamExample {json} Request-Example:
- *     GET /followed/episode/feed
- *     GET /followed/episode/feed?next=e30=
+ *     GET /podcast/followed/episode/feed
+ *     GET /podcast/followed/episode/feed?next=e30=
  *     Headers: [
  *        "x-account-id": 34754fd1-6c41-49bc-8172-f65d8e7dd5fe
  *     ]
@@ -235,12 +235,12 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
 
 /**
  * @api {get} /podcast/top/episode/feed /top/episode/feed
- * @apiName /top/episode/feed
+ * @apiName /podcast/top/episode/feed
  * @apiDescription Gets the latest released episodes of the top podcasts.
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
- *     GET /top/episode/feed
+ *     GET /podcast/top/episode/feed
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -328,7 +328,7 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
  * @apiGroup Podcast
  *
  * @apiParamExample {json} Request-Example:
- *     GET /podcast/episodes?episodeId=baeccada-d102-4e95-9ee1-74f4833257815
+ *     GET /podcast/episode?episodeId=baeccada-d102-4e95-9ee1-74f4833257815
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
