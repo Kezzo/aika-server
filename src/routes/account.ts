@@ -43,6 +43,7 @@ router.put('/create/mail', function(req: express.Request, res: express.Response,
       new Response(res, accountData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
   */
@@ -84,6 +85,7 @@ router.post('/login/mail', function(req: express.Request, res: express.Response,
     new Response(res, accountData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
   */
@@ -114,6 +116,7 @@ router.post('/send/magiclink', function(req: express.Request, res: express.Respo
     new Response(res, magicLinkSentResult).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
 });
@@ -149,6 +152,7 @@ router.post('/login/magiclink', function(req: express.Request, res: express.Resp
     new Response(res, accountData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
 });
@@ -184,6 +188,7 @@ router.post('/login/twitter', function(req: express.Request, res: express.Respon
       new Response(res, accountData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -217,6 +222,7 @@ router.post('/login/accountid', function(req: express.Request, res: express.Resp
     new Response(res, loginData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
 });
@@ -250,6 +256,7 @@ router.get('/verify', function(req: express.Request, res: express.Response, next
     new Response(res, resultData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
   */
@@ -284,6 +291,7 @@ router.post('/password/reset', function(req: express.Request, res: express.Respo
     new Response(res, resultData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
   */
@@ -323,6 +331,7 @@ router.post('/password/change', function(req: express.Request, res: express.Resp
     new Response(res, resultData).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
   */

@@ -41,6 +41,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
       new Response(res, podcastData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -74,6 +75,7 @@ router.post('/follow', function(req: express.Request, res: express.Response, nex
       new Response(res, followPodcastResult).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -107,6 +109,7 @@ router.post('/unfollow', function(req: express.Request, res: express.Response, n
       new Response(res, unfollowPodcastResult).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -157,6 +160,7 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
       new Response(res, followedPodcastsData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -229,6 +233,7 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
       new Response(res, followedPodcastsData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -273,6 +278,7 @@ router.get('/top/episode/feed', function(req: express.Request, res: express.Resp
       new Response(res, followedPodcastsData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -317,6 +323,7 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
       new Response(res, episodesData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -352,6 +359,7 @@ router.get('/episode', function(req: express.Request, res: express.Response, nex
       new Response(res, episodesData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -393,6 +401,7 @@ router.post('/import', function(req: express.Request, res: express.Response, nex
       new Response(res, podcastImportStartResult).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -434,6 +443,7 @@ router.post('/import/raw', function(req: express.Request, res: express.Response,
       new Response(res, rawPodcastImportStartResult).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -465,6 +475,7 @@ router.post('/import/episodes', function(req: express.Request, res: express.Resp
       new Response(res, episodeImportStartResult).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });

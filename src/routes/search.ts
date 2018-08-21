@@ -46,6 +46,7 @@ router.get('/podcasts', function(req: express.Request, res: express.Response, ne
       new Response(res, searchResults).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -86,6 +87,7 @@ router.get('/episodes', function(req: express.Request, res: express.Response, ne
       new Response(res, searchResults).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -125,6 +127,7 @@ router.get('/suggestions', function(req: express.Request, res: express.Response,
       new Response(res, searchResults).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });

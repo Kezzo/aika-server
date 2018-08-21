@@ -52,6 +52,7 @@ router.put('/create', function(req: express.Request, res: express.Response, next
       new Response(res, createdClipData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -99,6 +100,7 @@ router.post('/change', function(req: express.Request, res: express.Response, nex
       new Response(res, updateClipData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -134,6 +136,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
       new Response(res, clipData).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -176,6 +179,7 @@ router.get('/user', function(req: express.Request, res: express.Response, next: 
       new Response(res, clipDatas).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });
@@ -220,6 +224,7 @@ router.get('/episode', function(req: express.Request, res: express.Response, nex
       new Response(res, clipDatas).Send();
     })
     .catch((error) => {
+      logger.Error(error);
       new Response(res, null, error).Send();
     });
 });

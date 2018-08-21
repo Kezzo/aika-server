@@ -29,6 +29,7 @@ router.get('/logintoken', function(req: express.Request, res: express.Response, 
     new Response(res, loginToken).Send();
   })
   .catch((error) => {
+    logger.Error(error);
     new Response(res, null, error).Send();
   });
 });
