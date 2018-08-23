@@ -24,7 +24,8 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
         {
           appID: '3VP8F3G78N.com.tinkrinc.aika',
           paths: [
-            '/app'
+            '/app',
+            '/app/twitter/auth'
           ]
         }
       ]
