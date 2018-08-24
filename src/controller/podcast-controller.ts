@@ -231,8 +231,8 @@ export class PodcastController {
     };
   }
 
-  public static async GetLatestTopPodcastEpisodes(logger: AppLogger) {
-    return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger);
+  public static async GetLatestTopPodcastEpisodes(logger: AppLogger, nextToken: string) {
+    return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger, nextToken);
   }
 
   public static async GetFollowedPodcastFeed(logger: AppLogger, accountId: string, nextToken: string) {
@@ -248,8 +248,9 @@ export class PodcastController {
 
     const podcastFeedCacheKey = 'NEW_EPISODES_FEED_' + accountId;
     let timeToLiveForList = 86400;
+    let followedPodcastFeedNextToken = nextToken;
 
-    if (!nextToken) {
+    if (!followedPodcastFeedNextToken) {
       await CacheAccess.Delete(podcastFeedCacheKey);
     } else {
       const getTimeToLiveAsyncResult = await to(CacheAccess.GetTimeToLive(podcastFeedCacheKey));
@@ -261,7 +262,7 @@ export class PodcastController {
       // cache entry not existant or too old.
       if (getTimeToLiveAsyncResult.result === -1 || getTimeToLiveAsyncResult.result === -2 ||
         getTimeToLiveAsyncResult.result < 10) {
-        nextToken = null;
+        followedPodcastFeedNextToken = null;
       } else {
         timeToLiveForList = getTimeToLiveAsyncResult.result;
       }
@@ -269,13 +270,13 @@ export class PodcastController {
 
     const entriesPerPage = 20;
     let decodedToken: any = {};
-    if (nextToken) {
-      decodedToken = JSON.parse(Buffer.from(nextToken, 'base64').toString('utf8'));
+    if (followedPodcastFeedNextToken) {
+      decodedToken = JSON.parse(Buffer.from(followedPodcastFeedNextToken, 'base64').toString('utf8'));
     }
 
     let followEntries = [];
 
-    if (!nextToken || (nextToken && decodedToken.oldestFollowTimestamp)) {
+    if (!followedPodcastFeedNextToken || (followedPodcastFeedNextToken && decodedToken && decodedToken.oldestFollowTimestamp)) {
       followEntries = await PodcastQuery.GetFollowedPodcastEntries(logger, accountId,
         decodedToken.oldestFollowTimestamp, entriesPerPage);
     }
@@ -283,7 +284,7 @@ export class PodcastController {
     const entriesToGetFromCache = entriesPerPage - followEntries.length;
     let episodesFromCache: any = [];
 
-    if (nextToken && entriesToGetFromCache > 0) {
+    if (followedPodcastFeedNextToken && entriesToGetFromCache > 0) {
       const popAsyncResult = await to(CacheAccess.PopFromStartOfList(podcastFeedCacheKey, entriesToGetFromCache));
 
       if (popAsyncResult.error) {
@@ -298,7 +299,7 @@ export class PodcastController {
     }
 
     if (followEntries.length === 0 && episodesFromCache.length === 0) {
-      return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger);
+      return await PodcastController.GetLatestTopPodcastEpisodesResponse(logger, nextToken);
     }
 
     const episodesPerPodcast = Math.max(1, Math.round(entriesPerPage / (followEntries.length + episodesFromCache.length)));
@@ -789,14 +790,38 @@ export class PodcastController {
     });
   }
 
-  private static async GetLatestTopPodcastEpisodesResponse(logger: AppLogger) {
+  private static async GetLatestTopPodcastEpisodesResponse(logger: AppLogger, nextToken: string) {
     const fileData = StaticFileAccess.GetFileData(EnvironmentHelper.GetTopListFileName());
+    const pageSize = 17;
+
+    let decodedToken: any = {};
+    let nextNextToken: any = {
+      index: pageSize,
+      size: pageSize
+    };
+
+    let startIndex = 0;
+    if (nextToken) {
+      decodedToken = JSON.parse(Buffer.from(nextToken, 'base64').toString('utf8'));
+
+      startIndex = decodedToken.index;
+      nextNextToken.index = decodedToken.index + pageSize;
+    }
+
+    const fileEntriesToUse = [];
+
+    // sample out page
+    for (let i = startIndex; i < (startIndex + pageSize); i++) {
+      if (fileData[i]) {
+        fileEntriesToUse.push(fileData[i]);
+      }
+    }
 
     let topList = [];
-    if (fileData) {
+    if (fileEntriesToUse) {
       const episodesRetrievalPromises = [];
 
-      for (const podcastId of fileData) {
+      for (const podcastId of fileEntriesToUse) {
         episodesRetrievalPromises.push(PodcastQuery.GetEpisodesOfPodcast(logger, podcastId, null, null, 1));
       }
 
@@ -814,10 +839,17 @@ export class PodcastController {
       });
     }
 
+    if (fileEntriesToUse.length < pageSize || nextNextToken.index >= fileData.length) {
+      nextNextToken = null;
+    }
+
+    const nextTokenString = nextNextToken ? Buffer.from(JSON.stringify(nextNextToken)).toString('base64') : null;
+
     return {
       msg: {
         type: 'toplist',
         result: topList,
+        next: nextTokenString
       },
       statusCode: httpStatus.OK
     };

@@ -272,8 +272,9 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
  */
 router.get('/top/episode/feed', function(req: express.Request, res: express.Response, next: NextFunction) {
   const logger = new AppLogger(req, res);
+  const nextToken = req.param('next');
 
-  PodcastController.GetLatestTopPodcastEpisodes(logger)
+  PodcastController.GetLatestTopPodcastEpisodes(logger, nextToken)
     .then((followedPodcastsData) => {
       new Response(res, followedPodcastsData).Send();
     })
