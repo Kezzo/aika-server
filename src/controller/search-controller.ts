@@ -144,11 +144,13 @@ export class SearchController {
       };
     }
 
-    const podcastNames = [];
+    let podcastNames = [];
 
     for (const searchResult of searchResults) {
       podcastNames.push(searchResult._source.NAME);
     }
+
+    podcastNames = _.uniq(podcastNames);
 
     return {
       msg: {
