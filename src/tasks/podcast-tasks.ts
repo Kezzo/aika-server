@@ -9,7 +9,7 @@ export class PodcastTasks {
     return new Promise(async (resolve, reject) => {
       logger.Info('Invoking podcast import step function');
 
-      const podcastImportStartAsyncResult = await to(StepFunctionsAccess.StartExecution(PodcastTasks.GetPodcastImportArn(), ''));
+      const podcastImportStartAsyncResult = await to(StepFunctionsAccess.StartExecution(PodcastTasks.GetPodcastImportArn(), JSON.stringify({})));
 
       if (podcastImportStartAsyncResult.error) {
         return reject(podcastImportStartAsyncResult.error);
