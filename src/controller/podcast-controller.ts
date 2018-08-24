@@ -672,8 +672,8 @@ export class PodcastController {
     });
   }
 
-  public static async StartEpisodeImport(logger: AppLogger, podcastId: string,
-    taskToken: string, updateToken: string, episodeDatabaseEntries: any[], isLastRequest: string) {
+  public static async StartEpisodeImport(logger: AppLogger, podcastId: string, taskToken: string,
+    updateToken: string, episodeDatabaseEntries: any[], isLastRequest: string, isPartOfPodcastImport: boolean) {
 
     if (!podcastId || (!taskToken && !updateToken) || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
       return {
@@ -747,7 +747,7 @@ export class PodcastController {
     }
 
     if (isLastRequest) {
-      const startEpisodeImportAsyncResult = await to(PodcastTasks.StartEpisodeImport(logger, podcastId));
+      const startEpisodeImportAsyncResult = await to(PodcastTasks.StartEpisodeImport(logger, podcastId, isPartOfPodcastImport));
 
       if (startEpisodeImportAsyncResult.error) {
         throw startEpisodeImportAsyncResult.error;
