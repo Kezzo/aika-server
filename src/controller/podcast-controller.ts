@@ -328,17 +328,18 @@ export class PodcastController {
     const episodesToAddToCache = [];
 
     for (const episodeAsyncResult of episodeAsyncResults) {
+      if (episodeAsyncResult && episodeAsyncResult.length > 0) {
+        const oldestEpisode = episodeAsyncResult[episodeAsyncResult.length - 1];
 
-      const oldestEpisode = episodeAsyncResult[episodeAsyncResult.length - 1];
+        if (oldestEpisode.INDEX > 0) {
+          episodesToAddToCache.push(JSON.stringify({
+            PID: oldestEpisode.PID,
+            INDEX: oldestEpisode.INDEX
+          }));
+        }
 
-      if (oldestEpisode.INDEX > 0) {
-        episodesToAddToCache.push(JSON.stringify({
-          PID: oldestEpisode.PID,
-          INDEX: oldestEpisode.INDEX
-        }));
+        episodes.push(...episodeAsyncResult);
       }
-
-      episodes.push(...episodeAsyncResult);
     }
 
     if (episodesToAddToCache.length > 0) {
