@@ -11,6 +11,7 @@ import { CacheAccess } from '../common/cache-access';
 import { PodcastTasks } from '../tasks/podcast-tasks';
 import { EnvironmentHelper } from '../utility/environment-helper';
 import { StaticFileAccess } from '../common/static-file-access';
+import { IPodcastImportData } from '../types/podcast-import-data';
 
 export class PodcastController {
 
@@ -495,85 +496,20 @@ export class PodcastController {
       };
     }
 
-    const existingSourceIds = new Set(_.pluck(existingPodcasts, 'SRCID'));
+    const getItunesPodcastDataAsyncResult = await to(PodcastController.GetPodcastImportDataFromItunes(existingPodcasts, podcastSourceIds, logger));
 
-    for (let i = podcastSourceIds.length - 1; i >= 0; i--) {
-      const podcastSourceId = podcastSourceIds[i];
-
-      // remove podcast source id's to import if they already exist in db.
-      if (existingSourceIds.has(podcastSourceId.toString())) {
-        podcastSourceIds.splice(i, 1);
-      }
+    if (getItunesPodcastDataAsyncResult.error) {
+      throw getItunesPodcastDataAsyncResult.error;
     }
 
-    let iTunesQuery = 'https://itunes.apple.com/lookup?id=';
+    let podcastImportDataList = getItunesPodcastDataAsyncResult.result;
 
-    for (let i = 0; i < podcastSourceIds.length; i++) {
-      const podcastSourceId = podcastSourceIds[i];
-
-      iTunesQuery += podcastSourceId;
-
-      // Add comma if it isn't last id.
-      if (i < (podcastSourceIds.length - 1)) {
-        iTunesQuery += ',';
-      }
-    }
-
-    iTunesQuery += '&entity=podcast';
-
-    logger.Info('Fetching podcast entries from iTunes: ' + JSON.stringify(podcastSourceIds) +
-      ' with url: ' + iTunesQuery);
-    const iTunesQueryResult = await to(fetch(iTunesQuery));
-
-    if (iTunesQueryResult.error) {
-      throw iTunesQueryResult.error;
-    }
-
-    let unzipResult = await iTunesQueryResult.result.text();
-
-    logger.Info('Received podcast import data from iTunes: ' + unzipResult);
-
-    unzipResult = JSON.parse(unzipResult);
-
-    if (!unzipResult || _.isEmpty(unzipResult.results)) {
-      throw new Error('Podcast not found in iTunes: ' + unzipResult.error);
-    }
-
-    let podcastImportDataList = [];
-
-    for (const podcastSourceId of podcastSourceIds) {
-      const iTunesPodcastEntry = _.find(unzipResult.results, (entry: any) => {
-        return entry.collectionId === podcastSourceId;
-      });
-
-      if (!iTunesPodcastEntry) {
-        logger.Warn('Podcast with source id: ' + podcastSourceId + ' not returned by iTunes');
-        continue;
-      }
-
-      if (!iTunesPodcastEntry.feedUrl) {
-        logger.Warn('Podcast with source id: ' + podcastSourceId + ' doesn\'t have a feed url!');
-        continue;
-      }
-
-      podcastImportDataList.push({
-        source: 'itunes',
-        sourceId: iTunesPodcastEntry.collectionId,
-        feedUrl: iTunesPodcastEntry.feedUrl,
-        podcastId: uuidv4(),
-        resultPostUrl: EnvironmentHelper.GetServerUrl() + '/podcast/import/episodes',
-        taskToken: uuidv4()
-      });
-    }
-
-    logger.Info('Created podcast import data: ' + JSON.stringify(podcastImportDataList));
-
-    const podcastCacheSetResult = await to(CacheAccess.SetIfNotExistBatch(_.map(podcastImportDataList, (entry) => {
+    const podcastCacheSetResult = await to(CacheAccess.SetMany(_.map(podcastImportDataList, (entry: IPodcastImportData) => {
       return {
         key: 'IMPORT-' + entry.sourceId,
         value: entry.podcastId
       };
-    }), 900));
+    }), true, 86400));
 
     if (podcastCacheSetResult.error) {
       throw podcastCacheSetResult.error;
@@ -608,29 +544,44 @@ export class PodcastController {
       }
     }
 
-    const importStartPromises = new Array<Promise<AsyncResult>>();
+    if (podcastImportDataList && podcastImportDataList.length > 0) {
+      const importTokenSetResult = await to(CacheAccess.SetMany(_.map(podcastImportDataList, (entry: IPodcastImportData) => {
+        return {
+          key: 'EIMPORTTOKEN-' + entry.podcastId,
+          value: entry.taskToken
+        };
+      }), false, 86400));
 
-    for (const podcastImportData of podcastImportDataList) {
-      const importTokenKey = 'EIMPORTTOKEN-' + podcastImportData.podcastId;
-      const setImportTokenAsyncResult = await to(CacheAccess.Set(importTokenKey, podcastImportData.taskToken, 300));
-
-      if (setImportTokenAsyncResult.error) {
-        logger.Error(setImportTokenAsyncResult.error);
-        continue;
+      if (importTokenSetResult.error) {
+        throw importTokenSetResult.error;
       }
 
-      importStartPromises.push(to(PodcastTasks.InvokePodcastImport(logger, podcastImportData)));
+      const getListLengthAsyncResult = await to(CacheAccess.GetListLength('PODCASTS-TO-IMPORT'));
+
+      if (getListLengthAsyncResult.error) {
+        throw getListLengthAsyncResult.error;
+      }
+
+      const addPodcastsToImportListAsyncResult = await to(CacheAccess.AddItemsToList('PODCASTS-TO-IMPORT', _.map(podcastImportDataList, (entry) => {
+        return JSON.stringify(entry);
+      })));
+
+      if (addPodcastsToImportListAsyncResult.error) {
+        throw addPodcastsToImportListAsyncResult.error;
+      }
+
+      // only start when a podcast import is not already going on
+      if (getListLengthAsyncResult.result === 0) {
+        const importStartAsyncResult = await to(PodcastTasks.InvokePodcastImport(logger));
+
+        if (importStartAsyncResult.error) {
+          throw importStartAsyncResult.error;
+        }
+      }
     }
 
-    const importStartedResults = await Promise.all(importStartPromises);
-
-    for (const importStartedResult of importStartedResults) {
-      if (importStartedResult.error) {
-        logger.Error(importStartedResult.error);
-      } else {
-        // To only follow podcasts where the import process was started successfully
-        podcastIdsToFollow.push(importStartedResult.result.podcastId);
-      }
+    for (const podcastImportData of podcastImportDataList) {
+      podcastIdsToFollow.push(podcastImportData.podcastId);
     }
 
     if (accountId && (podcastIdsToFollow.length > 0 || existingPodcasts.length > 0)) {
@@ -646,7 +597,79 @@ export class PodcastController {
       },
       statusCode: httpStatus.ACCEPTED
     };
+  }
 
+  private static async GetPodcastImportDataFromItunes(existingPodcasts: any[], podcastSourceIds: string[], logger: AppLogger) {
+    return new Promise<IPodcastImportData[]>(async (resolve, reject) => {
+
+      const existingSourceIds = new Set(_.pluck(existingPodcasts, 'SRCID'));
+
+      for (let i = podcastSourceIds.length - 1; i >= 0; i--) {
+        const podcastSourceId = podcastSourceIds[i];
+        // remove podcast source id's to import if they already exist in db.
+        if (existingSourceIds.has(podcastSourceId.toString())) {
+          podcastSourceIds.splice(i, 1);
+        }
+      }
+
+      let iTunesQuery = 'https://itunes.apple.com/lookup?id=';
+      for (let i = 0; i < podcastSourceIds.length; i++) {
+        const podcastSourceId = podcastSourceIds[i];
+        iTunesQuery += podcastSourceId;
+        // Add comma if it isn't last id.
+        if (i < (podcastSourceIds.length - 1)) {
+          iTunesQuery += ',';
+        }
+      }
+
+      iTunesQuery += '&entity=podcast';
+      logger.Info('Fetching podcast entries from iTunes: ' + JSON.stringify(podcastSourceIds) +
+        ' with url: ' + iTunesQuery);
+
+      const iTunesQueryResult = await to(fetch(iTunesQuery));
+      if (iTunesQueryResult.error) {
+        return reject(iTunesQueryResult.error);
+      }
+
+      let getItunesPodcastDataAsyncResult = await iTunesQueryResult.result.text();
+      logger.Info('Received podcast import data from iTunes: ' + getItunesPodcastDataAsyncResult);
+      getItunesPodcastDataAsyncResult = JSON.parse(getItunesPodcastDataAsyncResult);
+
+      if (!getItunesPodcastDataAsyncResult || _.isEmpty(getItunesPodcastDataAsyncResult.results)) {
+        return reject('Podcast not found in iTunes: ' + getItunesPodcastDataAsyncResult.error);
+      }
+
+      const podcastImportDataList = [];
+
+      for (const podcastSourceId of podcastSourceIds) {
+        const iTunesPodcastEntry = _.find(getItunesPodcastDataAsyncResult.results, (entry: any) => {
+          return entry.collectionId === podcastSourceId;
+        });
+
+        if (!iTunesPodcastEntry) {
+          logger.Warn('Podcast with source id: ' + podcastSourceId + ' not returned by iTunes');
+          continue;
+        }
+
+        if (!iTunesPodcastEntry.feedUrl) {
+          logger.Warn('Podcast with source id: ' + podcastSourceId + ' doesn\'t have a feed url!');
+          continue;
+        }
+
+        podcastImportDataList.push({
+          source: 'itunes',
+          sourceId: iTunesPodcastEntry.collectionId,
+          feedUrl: iTunesPodcastEntry.feedUrl,
+          podcastId: uuidv4(),
+          resultPostUrl: EnvironmentHelper.GetServerUrl() + '/podcast/import/episodes',
+          taskToken: uuidv4()
+        });
+      }
+
+      logger.Info('Created podcast import data: ' + JSON.stringify(podcastImportDataList));
+
+      return resolve(podcastImportDataList);
+    });
   }
 
   public static async StartEpisodeImport(logger: AppLogger, podcastId: string,

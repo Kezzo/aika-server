@@ -1,22 +1,21 @@
 import { AppLogger } from '../logging/app-logger';
-import { LambdaAccess } from '../common/lambda-access';
 import to from '../utility/to';
 import { StepFunctionsAccess } from '../common/step-functions-access';
 import { EnvironmentHelper } from '../utility/environment-helper';
 import { Environment } from '../utility/environment';
 
 export class PodcastTasks {
-  public static async InvokePodcastImport(logger: AppLogger, payload: object) {
+  public static async InvokePodcastImport(logger: AppLogger) {
     return new Promise(async (resolve, reject) => {
-      logger.Info('Invoking podcast import step function with payload: ' + JSON.stringify(payload));
+      logger.Info('Invoking podcast import step function');
 
-      const podcastImportStartAsyncResult = await to(StepFunctionsAccess.StartExecution(PodcastTasks.GetPodcastImportArn(), JSON.stringify(payload)));
+      const podcastImportStartAsyncResult = await to(StepFunctionsAccess.StartExecution(PodcastTasks.GetPodcastImportArn(), ''));
 
       if (podcastImportStartAsyncResult.error) {
         return reject(podcastImportStartAsyncResult.error);
       }
 
-      return resolve(payload);
+      return resolve();
     });
   }
 

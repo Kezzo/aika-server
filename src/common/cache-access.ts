@@ -76,14 +76,18 @@ export class CacheAccess {
     });
   }
 
-  public static async SetIfNotExistBatch(keyValuePairs: Array<{ key: string, value: string }>, timeToLife?: number) {
+  public static async SetMany(keyValuePairs: Array<{ key: string, value: string }>, onlySetIfNotExists?: boolean, timeToLife?: number) {
     return new Promise((resolve, reject) => {
 
       const commandsToExecture = [];
 
       for (const keyValuePair of keyValuePairs) {
 
-        const commands = ['SET', keyValuePair.key, keyValuePair.value, 'NX'];
+        const commands = ['SET', keyValuePair.key, keyValuePair.value];
+
+        if (onlySetIfNotExists) {
+          commands.push('NX');
+        }
 
         if (timeToLife) {
           commands.push('EX');
@@ -152,6 +156,18 @@ export class CacheAccess {
         }
 
         return resolve(results);
+      });
+    });
+  }
+
+  public static async GetListLength(key: string) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.LLEN(key, (error, length) => {
+        if (!_.isNull(error)) {
+          return reject (error);
+        }
+
+        resolve(length);
       });
     });
   }
