@@ -673,7 +673,7 @@ export class PodcastController {
   }
 
   public static async StartEpisodeImport(logger: AppLogger, podcastId: string, taskToken: string,
-    updateToken: string, episodeDatabaseEntries: any[], isLastRequest: string, isPartOfPodcastImport: boolean) {
+    updateToken: string, episodeDatabaseEntries: any[], isLastRequest: string, isPartOfPodcastImport: string) {
 
     if (!podcastId || (!taskToken && !updateToken) || !episodeDatabaseEntries || !_.isArray(episodeDatabaseEntries) || episodeDatabaseEntries.length === 0) {
       return {

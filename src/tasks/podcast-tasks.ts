@@ -19,8 +19,14 @@ export class PodcastTasks {
     });
   }
 
-  public static async StartEpisodeImport(logger: AppLogger, podcastId: string, isPartOfPodcastImport: boolean) {
+  public static async StartEpisodeImport(logger: AppLogger, podcastId: string, isPartOfPodcastImportValue: string) {
     logger.Info('Invoking episode import step function with podcastId: ' + podcastId);
+
+    let isPartOfPodcastImport = false;
+
+    if (isPartOfPodcastImportValue) {
+      isPartOfPodcastImport = true;
+    }
 
     return StepFunctionsAccess.StartExecution(PodcastTasks.GetEpisodeImportArn(), JSON.stringify({ podcastId, isPartOfPodcastImport }));
   }
