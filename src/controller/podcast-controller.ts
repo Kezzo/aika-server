@@ -656,6 +656,11 @@ export class PodcastController {
           continue;
         }
 
+        if (!iTunesPodcastEntry.kind || iTunesPodcastEntry.kind !== 'podcast') {
+          logger.Warn('Podcast with source id: ' + podcastSourceId + ' is not a podcast!');
+          continue;
+        }
+
         podcastImportDataList.push({
           source: 'itunes',
           sourceId: iTunesPodcastEntry.collectionId,
