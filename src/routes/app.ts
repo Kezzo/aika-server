@@ -17,7 +17,7 @@ const router = express.Router();
  *
  */
 router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
-  res.redirect('https://itunes.apple.com/bh/app/overcast/id888422857');
+  res.redirect('https://getaika.co');
 });
 
 module.exports = router;
