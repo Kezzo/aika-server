@@ -220,7 +220,8 @@ router.get('/followed', function(req: express.Request, res: express.Response, ne
  *             "sourceId": "1315040130",
  *             "sourceLink": "http://feeds.megaphone.fm/watergate"
  *          }
- *        ]
+ *        ],
+ *        "nextToken": "eyJpbmRleCI6MzQsInNpemUiOjE3fQ=="
  *     }
  */
 router.get('/followed/episode/feed', function(req: express.Request, res: express.Response, next: NextFunction) {
@@ -246,6 +247,7 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
  *
  * @apiParamExample {json} Request-Example:
  *     GET /podcast/top/episode/feed
+ *     GET /podcast/top/episode/feed?next=eyJpbmRleCI6MzQsInNpemUiOjE3fQ==
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -267,7 +269,8 @@ router.get('/followed/episode/feed', function(req: express.Request, res: express
  *             "sourceId": "1315040130",
  *             "sourceLink": "http://feeds.megaphone.fm/watergate"
  *          }
- *        ]
+ *        ],
+ *        "nextToken": "eyJpbmRleCI6MzQsInNpemUiOjE3fQ=="
  *     }
  */
 router.get('/top/episode/feed', function(req: express.Request, res: express.Response, next: NextFunction) {

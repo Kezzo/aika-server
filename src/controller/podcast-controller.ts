@@ -878,7 +878,7 @@ export class PodcastController {
       msg: {
         type: 'toplist',
         result: topList,
-        next: nextTokenString
+        nextToken: nextTokenString
       },
       statusCode: httpStatus.OK
     };
