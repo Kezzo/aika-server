@@ -67,7 +67,7 @@ export class AccountController {
     const ott = await OneTimeTokenService.GenerateOTT(asyncResult.result.ACCID);
 
     const response = {
-      userName: accountData.USRNM,
+      userName: accountData.MAIL ? accountData.MAIL : accountData.USRNM,
       accountId: asyncResult.result.ACCID,
       authToken: asyncResult.result.AUTHTK,
       oneTimeToken: ott
@@ -268,7 +268,7 @@ export class AccountController {
     };
 
     if (isInitialSignIn) {
-      response.userName = accountData.USRNM;
+      response.userName = accountData.MAIL ? accountData.MAIL : accountData.USRNM;
       response.accountId = accountData.ACCID;
       response.authToken = accountData.AUTHTK;
     }
