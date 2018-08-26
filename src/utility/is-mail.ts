@@ -5,10 +5,18 @@ export default function isMail(stringToCheck: string) {
     return false;
   }
 
+  if (stringToCheck.length > 320) {
+    return false;
+  }
+
   const stringSplitByAt: string[] = stringToCheck.split('@');
 
   // @ is missing.
   if (stringSplitByAt.length < 2) {
+    return false;
+  }
+
+  if (stringSplitByAt[0].length > 64 || stringSplitByAt[1].length > 255) {
     return false;
   }
 
