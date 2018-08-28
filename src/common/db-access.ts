@@ -50,7 +50,7 @@ export class DatabaseAccess {
   }
 
   public static async WriteMany(logger: AppLogger, params: BatchWriteItemInput) {
-    logger.Info('DB Put: ' + JSON.stringify(params));
+    logger.Info('DB WriteMany: ' + JSON.stringify(params));
 
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
@@ -64,7 +64,7 @@ export class DatabaseAccess {
           logger.Warn('Unprocessed items received after WriteMany: ' + JSON.stringify(data.UnprocessedItems));
         }
 
-        logger.Info('DB Put data:' + JSON.stringify(data));
+        logger.Info('DB WriteMany data:' + JSON.stringify(data));
         return resolve(true);
       });
     });
@@ -75,7 +75,7 @@ export class DatabaseAccess {
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.get(params, function(error, data) {
-        logger.Info('DB Got data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Get data not null:' + (data !== null) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -90,7 +90,16 @@ export class DatabaseAccess {
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.batchGet(params, function(error, data) {
-        logger.Info('DB Got data:' + JSON.stringify(data.Responses) + ' error: ' + error);
+        let resultString = '';
+
+        for (const key in data.Responses) {
+          if (data.Responses.hasOwnProperty(key)) {
+            const element = data.Responses[key];
+            resultString += element.length + ' from ' + key;
+          }
+        }
+
+        logger.Info('DB GetMany data results: ' + resultString + ' error: ' + error);
 
         if (!_.isNull(error)) {
           return reject(error);
@@ -110,7 +119,7 @@ export class DatabaseAccess {
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.query(params, function(error, data) {
-        logger.Info('DB Query data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Query data not null:' + (data !== null) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -132,7 +141,7 @@ export class DatabaseAccess {
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.update(params, function(error, data) {
-        logger.Info('DB Updated data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Update data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
@@ -148,7 +157,7 @@ export class DatabaseAccess {
     const dynamodb = this.dynamodb;
     return new Promise(function(resolve, reject) {
       dynamodb.delete(params, function(error, data) {
-        logger.Info('DB Deleted data:' + JSON.stringify(data) + ' error: ' + error);
+        logger.Info('DB Delete data:' + JSON.stringify(data) + ' error: ' + error);
         if (!_.isNull(error)) {
           return reject(error);
         }
