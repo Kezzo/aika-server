@@ -40,13 +40,13 @@ export class AppLogger {
     }
   }
 
-  public Error(logMessage, callback?) {
+  public Error(logMessage) {
     if (AppLogger.logLevel.order <= LogLevel.ERROR.order) {
       if (!_.isUndefined(logMessage.message) && !_.isUndefined(logMessage.stack)) {
         logMessage = logMessage.message + '\n' + logMessage.stack;
       }
 
-      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.ERROR, this.requestId, logMessage), callback);
+      AppLogger.streamToUse.write(AppLogger.getFormattedLog(LogLevel.ERROR, this.requestId, logMessage));
     }
   }
 

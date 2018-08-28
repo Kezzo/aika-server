@@ -28,11 +28,11 @@ import { SearchAccess } from './common/search-access';
 import { StaticFileAccess } from './common/static-file-access';
 
 let appLogger: AppLogger;
+let logStreamToUse;
 
 const startup = async function() {
   const logDirectory = path.join(path.resolve(__dirname, '..') + '/logs');
 
-  let logStreamToUse;
   if (EnvironmentHelper.GetEnvironment() === Environment.LOCAL) {
     logStreamToUse = ConsoleStream;
   } else {
@@ -43,10 +43,10 @@ const startup = async function() {
   AppLogger.Init(logDirectory, LogLevel.DEBUG, logStreamToUse);
   appLogger = new AppLogger();
 
-  process.on('uncaughtException', (err) => {
-    appLogger.Error('Uncaught exception: ' + err, () => {
-      process.exit(1);
-    });
+  process.on('uncaughtException', async (err) => {
+    appLogger.Error('Uncaught exception: ' + err);
+    await logStreamToUse.FlushBuffer();
+    process.exit(1);
   });
 
   process.on('unhandledRejection', (reason, p) => {
@@ -94,11 +94,13 @@ startup()
 .then((result) => {
   appLogger.Info('Startup completed!');
 })
-.catch((error) => {
+.catch(async (error) => {
   if (_.isNull(appLogger) || _.isUndefined(appLogger)) {
     // tslint:disable-next-line:no-console
     console.error('Error in startup: ' + error);
   } else {
     appLogger.Error('Error in startup: ' + error);
+    await logStreamToUse.FlushBuffer();
+    process.exit(1);
   }
 });

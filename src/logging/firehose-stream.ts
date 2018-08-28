@@ -5,9 +5,11 @@ import { Environment } from '../utility/environment';
 
 export class FirehoseStream {
   private static firehose: AWS.Firehose;
+  private static logBuffer;
 
   public static async Init() {
     this.firehose = new AWS.Firehose(FirehoseStream.GetConfig());
+    this.logBuffer = [];
   }
 
   public static PutRecord(dataToPut: string) {
@@ -24,8 +26,37 @@ export class FirehoseStream {
     });
   }
 
+  public static PutRecords(dataToPut: string[], onSendCallback?: () => void) {
+    this.firehose.putRecordBatch({
+      DeliveryStreamName: FirehoseStream.GetDeliveryStreamName(),
+      Records: _.map(dataToPut, (entry) => ({ Data: entry }))
+    }, (err: AWS.AWSError, data: AWS.Firehose.PutRecordBatchOutput) => {
+      if (!_.isNull(err)) {
+        // tslint:disable-next-line:no-console
+        console.error('Error putting record to kinesis: ' + err);
+      }
+
+      if (onSendCallback) {
+        onSendCallback();
+      }
+    });
+  }
+
   public static write(stringToWrite: string) {
-    this.PutRecord(stringToWrite);
+    this.logBuffer.push(stringToWrite);
+
+    if (this.logBuffer.length >= 10) {
+      FirehoseStream.PutRecords(this.logBuffer.splice(0, 10));
+    }
+  }
+
+  public static async FlushBuffer() {
+    return new Promise((resolve) => {
+      FirehoseStream.PutRecords(this.logBuffer, () => {
+        return resolve();
+      });
+      this.logBuffer = [];
+    });
   }
 
   private static GetDeliveryStreamName() {

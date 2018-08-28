@@ -3,4 +3,6 @@ export class ConsoleStream {
     // tslint:disable-next-line:no-console
     console.log(stringToWrite);
   }
+
+  public static async FlushBuffer() {}
 }
