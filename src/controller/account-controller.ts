@@ -291,7 +291,7 @@ export class AccountController {
     }
 
     // TODO: Also get access tokens and store them!
-    const twitterProfile = await TwitterService.GetTwitterProfile(logger, oauthToken, oauthVerifier);
+    const twitterProfile = await TwitterService.GetBaseProfile(logger, oauthToken, oauthVerifier);
 
     if (!twitterProfile) {
       return {
@@ -314,14 +314,20 @@ export class AccountController {
 
       accountData = asyncResult.result;
     }
-    const ott = await OneTimeTokenService.GenerateOTT(accountData.ACCID);
 
-    const response = {
+    const response: any = {
       userName: accountData.USRNM,
       accountId: accountData.ACCID,
-      authToken: accountData.AUTHTK,
-      oneTimeToken: ott
+      authToken: accountData.AUTHTK
     };
+
+    const fullTwitterProfile = await TwitterService.GetFullUserProfile(logger, twitterProfile.user_id);
+
+    if (fullTwitterProfile && fullTwitterProfile.profile_image_url_https && !fullTwitterProfile.default_profile_image) {
+      response.profileImage = fullTwitterProfile.profile_image_url_https.replace('normal', 'bigger');
+    }
+
+    response.oneTimeToken = await OneTimeTokenService.GenerateOTT(accountData.ACCID);
 
     return {
       msg: response,

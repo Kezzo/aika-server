@@ -139,7 +139,8 @@ router.post('/send/magiclink', function(req: express.Request, res: express.Respo
  *     {
  *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
  *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
- *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92",
+ *       "userName": "jon@tinkrinc.co",
  *     }
  */
 router.post('/login/magiclink', function(req: express.Request, res: express.Response, next: NextFunction) {
@@ -175,7 +176,9 @@ router.post('/login/magiclink', function(req: express.Request, res: express.Resp
  *     {
  *       "accountId": "b4cb9cc3-830f-46be-9adc-984562d5aa2d",
  *       "authToken": "b31f8379-caef-4dc4-857e-ff1755d7de4f",
- *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92"
+ *       "oneTimeToken": "6085b143-660f-4985-ae65-85f2aeebcf92",
+ *       "userName": "KezzoDev",
+ *       "profileImage": "https://pbs.twimg.com/profile_images/994979500676014080/IFkWWjul_bigger.jpg",
  *     }
  */
 router.post('/login/twitter', function(req: express.Request, res: express.Response, next: NextFunction) {

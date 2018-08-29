@@ -46,10 +46,10 @@ export class TwitterService {
     return loginTokenRequestResult.result.oauth_token;
   }
 
-  public static async GetTwitterProfile(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
-    logger.Info('Getting twitter id!');
+  public static async GetBaseProfile(logger: AppLogger, oauthToken: string, oauthVerifier: string) {
+    logger.Info('Getting twitter profile!');
     const requestData = {
-      url: this.twitterApiEndpoint + '/oauth/access_token' + '?oauth_verifier=' + oauthVerifier,
+      url: this.twitterApiEndpoint + 'oauth/access_token' + '?oauth_verifier=' + oauthVerifier,
       method: 'POST'
     };
 
@@ -64,21 +64,43 @@ export class TwitterService {
     return accessTokenRequestResult.result;
   }
 
-  private static async SendSignedAPIRequest(logger: AppLogger, requestData: any, token: object) {
+  public static async GetFullUserProfile(logger: AppLogger, userId: string) {
+    logger.Info('Getting full twitter profile of user id: ' + userId);
+    const requestData = {
+      url: this.twitterApiEndpoint + '1.1/users/show.json' + '?user_id=' + userId,
+      method: 'GET'
+    };
+
+    const getUserAsyncResult = await to(this.SendSignedAPIRequest(logger, requestData, {}, true));
+
+    if (!_.isNull(getUserAsyncResult.error)) {
+      throw getUserAsyncResult.error;
+    }
+
+    return getUserAsyncResult.result;
+  }
+
+  private static async SendSignedAPIRequest(logger: AppLogger, requestData: any, token: object, isJSON?: boolean) {
     return new Promise((resolve, reject) => {
-      request({
+
+      const requestObject: any = {
         url: requestData.url,
         method: requestData.method,
-        body: requestData.body,
         headers: this.oauthClient.toHeader(this.oauthClient.authorize(requestData, token))
-      }, (error, response, body) => {
+      };
+
+      if (requestData.method === 'POST') {
+        requestObject.body =  requestData.body;
+      }
+
+      request(requestObject, (error, response, body) => {
         if (!_.isNull(error)) {
           error = 'Error response from signed twitter api request: ' + error;
           logger.Error(error);
           reject(error);
         }
 
-        const responseObject = this.ParseResponseObject(body);
+        const responseObject = isJSON ? JSON.parse(body) : this.ParseResponseObject(body);
 
         logger.Info('Successfully got response from signed twitter api request');
 
