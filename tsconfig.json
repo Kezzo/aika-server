@@ -1,11 +1,13 @@
 {
+    "compileOnSave": true,
     "compilerOptions": {
         "module": "commonjs",
         "target": "es2015",
         "outDir": "compiled-src",
         "rootDir": "src",
         "removeComments": true,
-        "typeRoots": [ "node_modules/@types" ]
+        "typeRoots": [ "node_modules/@types" ],
+        "alwaysStrict": true
     },
     "include": [
         "src"
