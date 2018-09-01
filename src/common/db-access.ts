@@ -92,10 +92,12 @@ export class DatabaseAccess {
       dynamodb.batchGet(params, function(error, data) {
         let resultString = '';
 
-        for (const key in data.Responses) {
-          if (data.Responses.hasOwnProperty(key)) {
-            const element = data.Responses[key];
-            resultString += element.length + ' from ' + key;
+        if (data && data.Responses && _.isArray(data.Responses) && data.Responses.length > 0) {
+          for (const key in data.Responses) {
+            if (data.Responses.hasOwnProperty(key)) {
+              const element = data.Responses[key];
+              resultString += element.length + ' from ' + key;
+            }
           }
         }
 

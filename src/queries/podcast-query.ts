@@ -52,6 +52,8 @@ export class PodcastQuery {
       return null;
     }
 
+    podcastIds = _.uniq(podcastIds);
+
     const keys = [];
 
     for (const podcastId of podcastIds) {
