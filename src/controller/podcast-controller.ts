@@ -118,6 +118,18 @@ export class PodcastController {
       };
     }
 
+    const podcastFollowEntry = await PodcastQuery.GetPodcastFollowEntry(logger, accountId, podcastId);
+
+    if (podcastFollowEntry) {
+      return {
+        msg: {
+          error: 'User already follows podcast!',
+          errorCode: PodcastError.PODCAST_FOLLOW_ENTRY_ALREADY_EXISTS
+        },
+        statusCode: httpStatus.BAD_REQUEST
+      };
+    }
+
     await PodcastQuery.CreatePodcastFollowEntries(logger, accountId, [podcastId]);
 
     return {
