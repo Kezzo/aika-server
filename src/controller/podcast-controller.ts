@@ -222,13 +222,9 @@ export class PodcastController {
     }
 
     const podcasts = await PodcastQuery.GetPodcasts(logger, _.pluck(followedPodcasts, 'PID'));
-
-    if (!podcasts || podcasts.length === 0) {
-      throw Error('Podcasts with the ids: ' + JSON.stringify(followedPodcasts) + 'couldn\'t be retrieved!');
-    }
+    // allowing result of no podcasts here, because they could still be pending in the import pipeline
 
     let responseMessage: any;
-
     if (followedPodcasts) {
       responseMessage = PodcastController.GetPodcastResponseMessage(podcasts, followedPodcasts);
     } else {
