@@ -1,6 +1,8 @@
 import { NextFunction } from 'express';
 
 import express = require('express');
+import { EnvironmentHelper } from '../utility/environment-helper';
+import { Environment } from '../utility/environment';
 const router = express.Router();
 
 /**
@@ -17,7 +19,13 @@ const router = express.Router();
  *
  */
 router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
-  res.redirect('https://getaika.co');
+  let urlToRedirectTo = 'https://getaika.co/app?token=' + req.params('token');
+
+  if (EnvironmentHelper.GetEnvironment() === Environment.DEV) {
+    urlToRedirectTo += '?dev=true';
+  }
+
+  res.redirect(urlToRedirectTo);
 });
 
 module.exports = router;
