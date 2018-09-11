@@ -22,7 +22,7 @@ router.get('/', function(req: express.Request, res: express.Response, next: Next
   let urlToRedirectTo = 'https://getaika.co/app/index.html?token=' + req.param('token');
 
   if (EnvironmentHelper.GetEnvironment() === Environment.DEV) {
-    urlToRedirectTo += '?dev=true';
+    urlToRedirectTo += '&dev=true';
   }
 
   res.redirect(urlToRedirectTo);
