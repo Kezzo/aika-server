@@ -19,7 +19,7 @@ const router = express.Router();
  *
  */
 router.get('/', function(req: express.Request, res: express.Response, next: NextFunction) {
-  let urlToRedirectTo = 'https://getaika.co/app?token=' + req.params('token');
+  let urlToRedirectTo = 'https://getaika.co/app/index.html?token=' + req.params('token');
 
   if (EnvironmentHelper.GetEnvironment() === Environment.DEV) {
     urlToRedirectTo += '?dev=true';
